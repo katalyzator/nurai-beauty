@@ -152,6 +152,35 @@ describe("nurAI assistant guardrails", () => {
     expect(output.bookingDraft).toBeNull();
   });
 
+  it("accepts booking_create drafts with null notes from OpenRouter", () => {
+    const output = validateAssistantOutput(
+      JSON.stringify({
+        intent: "booking_create",
+        reply: "Проверьте детали и подтвердите запись.",
+        bookingDraft: {
+          salonId: "11111111-1111-4111-8111-111111111111",
+          serviceId: "22222222-2222-4222-8222-222222222222",
+          staffId: "33333333-3333-4333-8333-333333333333",
+          clientName: "Тест",
+          clientPhone: "+996700000000",
+          date: "2026-06-23",
+          time: "11:00",
+          notes: null,
+        },
+        suggestions: ["Изменить время"],
+      }),
+      context,
+    );
+
+    expect(output.intent).toBe("book");
+    expect(output.bookingDraft).toMatchObject({
+      salonName: "Erkindik Nails",
+      serviceName: "Маникюр с гель-лаком",
+      staffName: "Сезим",
+      notes: undefined,
+    });
+  });
+
   it("drops booking drafts that reference unknown salons or services", () => {
     const output = validateAssistantOutput(
       JSON.stringify({

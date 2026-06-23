@@ -101,7 +101,7 @@ const assistantRawDraftSchema = z.object({
   clientPhone: z.string().trim().min(7).max(32),
   date: z.string().regex(/^\d{4}-\d{2}-\d{2}$/),
   time: z.string().regex(/^\d{2}:\d{2}$/),
-  notes: z.string().trim().max(180).optional(),
+  notes: z.string().trim().max(180).nullable().optional(),
 });
 
 const assistantRawOutputSchema = z.object({
@@ -370,14 +370,10 @@ function normalizeAssistantIntent(intent: string): AssistantIntent {
   const normalized = intent.toLowerCase().trim();
 
   if (
-    [
-      "book",
-      "booking",
-      "booking_start",
-      "create_booking",
-      "appointment",
-      "schedule",
-    ].includes(normalized)
+    normalized.includes("book") ||
+    normalized.includes("booking") ||
+    normalized.includes("appointment") ||
+    ["schedule", "create_booking"].includes(normalized)
   ) {
     return "book";
   }
