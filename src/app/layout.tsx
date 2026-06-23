@@ -18,16 +18,11 @@ const cormorant = Cormorant_Garamond({
 
 export const metadata: Metadata = {
   metadataBase: new URL("https://nurai.beauty"),
-  title: "NurAI",
+  title: "nurAI",
   description: "Запись в салоны красоты Бишкека без ожидания ответа.",
-  icons: {
-    icon: "/brand/nurai-logo.png",
-    apple: "/brand/nurai-logo.png",
-  },
   openGraph: {
-    title: "NurAI",
+    title: "nurAI",
     description: "Запись в салоны красоты Бишкека без ожидания ответа.",
-    images: ["/brand/nurai-logo.png"],
   },
 };
 
