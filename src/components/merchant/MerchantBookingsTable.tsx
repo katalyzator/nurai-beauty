@@ -17,14 +17,14 @@ export function MerchantBookingsTable({
             Заявки клиентов
           </h2>
         </div>
-        <span className="rounded-full bg-[var(--blush)] px-3 py-1 text-sm font-extrabold text-[var(--rose-deep)]">
+        <span className="rounded-full bg-[var(--brand-fog)] px-3 py-1 text-sm font-extrabold text-[var(--brand-plum)]">
           {bookings.length}
         </span>
       </div>
       <div className="divide-y divide-[var(--line)]">
         {bookings.length === 0 && (
           <div className="grid place-items-center px-6 py-14 text-center">
-            <div className="grid h-14 w-14 place-items-center rounded-full bg-[var(--blush)] text-[var(--rose-deep)]">
+            <div className="grid h-14 w-14 place-items-center rounded-full bg-[var(--brand-fog)] text-[var(--brand-plum)]">
               <Inbox aria-hidden className="h-6 w-6" />
             </div>
             <p className="mt-4 text-lg font-black text-[var(--ink)]">

@@ -47,14 +47,14 @@ export function SalonMap({ salons }: { salons: SalonSummary[] }) {
               <p className="text-sm font-black text-[var(--ink)]">
                 {salon.name}
               </p>
-              <p className="mt-1 text-xs text-[#6b5c4b]">{salon.address}</p>
+              <p className="mt-1 text-xs text-[var(--muted)]">{salon.address}</p>
               <div className="mt-3 flex items-center justify-between gap-3">
                 <span className="text-xs font-bold text-[var(--rose-deep)]">
                   {formatDistance(salon.distanceMeters)}
                 </span>
                 <Link
                   href={`/salons/${salon.slug}`}
-                  className="rounded-full bg-[var(--rose)] px-3 py-1.5 text-xs font-bold text-white"
+                  className="rounded-full bg-[var(--brand-plum)] px-3 py-1.5 text-xs font-bold text-white"
                 >
                   Открыть
                 </Link>

@@ -2,6 +2,7 @@ import Link from "next/link";
 import { Suspense } from "react";
 import { CalendarClock, Search, Sparkles } from "lucide-react";
 import type { SalonSummary } from "@/lib/domain/types";
+import { BrandLogo } from "@/components/brand/BrandLogo";
 import { TelegramAuthButton } from "@/components/auth/TelegramAuthButton";
 import { LocationButton } from "@/components/map/LocationButton";
 import { SalonMapPanel } from "@/components/map/SalonMapPanel";
@@ -28,14 +29,7 @@ export function SalonSearchShell({
     <main className="beauty-shell min-h-screen px-3 pb-8 pt-4 text-[var(--ink)] sm:px-5 lg:px-8">
       <div className="mx-auto max-w-[1400px]">
         <header className="flex min-h-16 items-center justify-between gap-4 border-b border-[var(--rose-line)]">
-          <Link href="/" className="flex items-center gap-3">
-            <span className="grid h-10 w-10 place-items-center rounded-full border border-[var(--rose-line)] bg-white font-display text-2xl font-bold leading-none text-[var(--rose-deep)] shadow-[var(--shadow-subtle)]">
-              N
-            </span>
-            <span className="font-display text-[32px] font-bold leading-none">
-              NurAI
-            </span>
-          </Link>
+          <BrandLogo />
 
           <nav className="hidden items-center gap-1 text-sm font-bold text-[var(--muted)] md:flex">
             <a
@@ -62,7 +56,7 @@ export function SalonSearchShell({
             />
             <Link
               href="#salons"
-              className="hidden min-h-11 items-center rounded-full bg-[var(--rose)] px-5 text-sm font-extrabold text-white shadow-[0_16px_34px_rgba(232,93,143,0.24)] hover:-translate-y-0.5 sm:inline-flex"
+              className="hidden min-h-11 items-center rounded-full bg-[var(--brand-plum)] px-5 text-sm font-extrabold text-white shadow-[var(--shadow-cta)] hover:-translate-y-0.5 sm:inline-flex"
             >
               Записаться
             </Link>
@@ -72,11 +66,11 @@ export function SalonSearchShell({
         <section className="grid gap-6 py-7 lg:grid-cols-[minmax(0,0.92fr)_minmax(420px,0.72fr)] lg:items-stretch">
           <div className="flex flex-col justify-center py-2">
             <div className="inline-flex w-fit items-center gap-2 rounded-full border border-[var(--rose-line)] bg-white px-3 py-2 text-xs font-extrabold text-[var(--rose-deep)] shadow-[var(--shadow-subtle)]">
-              <span className="h-2 w-2 rounded-full bg-[var(--rose)] shadow-[0_0_0_6px_rgba(232,93,143,0.14)]" />
+              <span className="h-2 w-2 rounded-full bg-[var(--rose)] shadow-[0_0_0_6px_rgba(244,176,192,0.28)]" />
               Бишкек · ближайшие окна сегодня
             </div>
 
-            <h1 className="mt-5 max-w-4xl font-display text-[50px] font-semibold leading-[0.95] text-[var(--ink)] sm:text-[72px] lg:text-[86px]">
+            <h1 className="mt-5 max-w-4xl font-display text-[50px] font-semibold leading-[0.95] text-[var(--brand-plum)] sm:text-[72px] lg:text-[86px]">
               Запись в салон без ожидания ответа
             </h1>
             <p className="mt-5 max-w-2xl text-base leading-7 text-[var(--muted)] sm:text-lg">
@@ -99,7 +93,7 @@ export function SalonSearchShell({
                 <LocationButton />
               </Suspense>
               <a
-                className="inline-flex min-h-12 items-center justify-center rounded-full bg-[var(--rose)] px-6 text-sm font-extrabold text-white shadow-[0_16px_34px_rgba(232,93,143,0.22)]"
+                className="inline-flex min-h-12 items-center justify-center rounded-full bg-[var(--brand-plum)] px-6 text-sm font-extrabold text-white shadow-[var(--shadow-cta)]"
                 href="#salons"
               >
                 Найти время
@@ -107,7 +101,7 @@ export function SalonSearchShell({
             </div>
 
             <div className="mt-4 flex flex-wrap gap-2">
-              <span className="rounded-full bg-[var(--ink)] px-4 py-2 text-sm font-bold text-white">
+              <span className="rounded-full bg-[var(--chocolate)] px-4 py-2 text-sm font-bold text-white">
                 Сегодня
               </span>
               {categories.map((category) => (
@@ -138,7 +132,7 @@ export function SalonSearchShell({
                     : "После подключения Supabase здесь появятся реальные окна."}
                 </p>
               </div>
-              <span className="grid h-14 w-14 place-items-center rounded-full bg-[var(--cream)] text-sm font-black text-[#8f5c18]">
+              <span className="grid h-14 w-14 place-items-center rounded-full bg-[var(--cream)] text-sm font-black text-[var(--cocoa)]">
                 {featuredSalon ? featuredSalon.rating.toFixed(1) : "4.8"}
               </span>
             </div>
@@ -148,7 +142,7 @@ export function SalonSearchShell({
                 <Link
                   className={`grid min-h-12 place-items-center rounded-[8px] border text-sm font-extrabold ${
                     index === 0
-                      ? "border-[var(--rose)] bg-[var(--rose)] text-white"
+                      ? "border-[var(--brand-plum)] bg-[var(--brand-plum)] text-white"
                       : "border-[var(--rose-line)] bg-white text-[var(--ink)]"
                   }`}
                   href={featuredSalon ? `/salons/${featuredSalon.slug}` : "#salons"}

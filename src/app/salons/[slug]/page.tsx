@@ -11,6 +11,7 @@ import {
   Sparkles,
   Star,
 } from "lucide-react";
+import { BrandLogo } from "@/components/brand/BrandLogo";
 import { TelegramAuthButton } from "@/components/auth/TelegramAuthButton";
 import { BookingForm } from "@/components/booking/BookingForm";
 import { getSalonBySlug } from "@/lib/domain/salons";
@@ -42,6 +43,9 @@ export default async function SalonPage({
             <ArrowLeft aria-hidden className="h-4 w-4" />
             Назад
           </Link>
+          <div className="hidden sm:block">
+            <BrandLogo compact />
+          </div>
           <TelegramAuthButton
             botUsername={process.env.TELEGRAM_BOT_USERNAME}
             compact
@@ -60,12 +64,12 @@ export default async function SalonPage({
                   sizes="(min-width: 1024px) 64vw, 100vw"
                   className="object-cover"
                 />
-                <div className="absolute inset-0 bg-gradient-to-t from-[rgba(42,32,34,0.72)] via-[rgba(42,32,34,0.18)] to-transparent" />
+                <div className="absolute inset-0 bg-gradient-to-t from-[rgba(50,24,18,0.76)] via-[rgba(104,24,41,0.18)] to-transparent" />
                 <div className="absolute left-5 top-5 flex flex-wrap gap-2">
                   <span className="rounded-full bg-white/92 px-4 py-2 text-sm font-extrabold text-[var(--rose-deep)] shadow-sm backdrop-blur">
                     {visual.signal}
                   </span>
-                  <span className="rounded-full bg-white/92 px-4 py-2 text-sm font-extrabold text-[#8f5c18] shadow-sm backdrop-blur">
+                  <span className="rounded-full bg-white/92 px-4 py-2 text-sm font-extrabold text-[var(--cocoa)] shadow-sm backdrop-blur">
                     {formatPriceTier(salon.priceTier)}
                   </span>
                 </div>

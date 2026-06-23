@@ -34,7 +34,7 @@ export function LocationButton() {
       <button
         type="button"
         onClick={useMyLocation}
-        className="inline-flex min-h-12 items-center justify-center gap-2 rounded-full border border-[var(--rose-line)] bg-[var(--blush-soft)] px-4 text-sm font-extrabold text-[var(--rose-deep)] hover:-translate-y-0.5 hover:border-[var(--rose)]"
+        className="inline-flex min-h-12 items-center justify-center gap-2 rounded-full border border-[var(--petal-line)] bg-[var(--brand-fog)] px-4 text-sm font-extrabold text-[var(--brand-plum)] hover:-translate-y-0.5 hover:border-[var(--rose)]"
       >
         {status === "loading" ? (
           <LoaderCircle aria-hidden className="h-4 w-4 animate-spin" />

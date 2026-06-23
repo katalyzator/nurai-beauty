@@ -17,7 +17,7 @@ export function MerchantSalonSummary({ salons }: { salons: MerchantSalon[] }) {
         salons.map((salon) => (
           <article
             key={salon.id}
-            className="rounded-[24px] border border-[var(--rose-line)] bg-white p-5 shadow-[var(--shadow-subtle)] transition-[transform,border-color,box-shadow] duration-200 hover:-translate-y-0.5 hover:border-[var(--rose)] hover:shadow-[var(--shadow-card)]"
+            className="rounded-[24px] border border-[var(--rose-line)] bg-white p-5 shadow-[var(--shadow-subtle)] transition-[transform,border-color,box-shadow] duration-200 hover:-translate-y-0.5 hover:border-[var(--petal)] hover:shadow-[var(--shadow-card)]"
           >
             <div className="flex items-start justify-between gap-4">
               <div>
@@ -33,7 +33,7 @@ export function MerchantSalonSummary({ salons }: { salons: MerchantSalon[] }) {
                   {salon.address}
                 </p>
               </div>
-              <div className="rounded-full bg-[var(--blush)] px-3 py-2 text-xs font-black uppercase tracking-[0.12em] text-[var(--rose-deep)]">
+              <div className="rounded-full bg-[var(--brand-fog)] px-3 py-2 text-xs font-black uppercase tracking-[0.12em] text-[var(--brand-plum)]">
                 Live
               </div>
             </div>

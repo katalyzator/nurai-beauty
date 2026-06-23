@@ -79,7 +79,7 @@ export function BookingForm({
       onSubmit={submit}
       className="rounded-[24px] border border-[var(--rose-line)] bg-white p-4 text-[var(--ink)] shadow-[var(--shadow-card)] sm:p-5"
     >
-      <div className="rounded-[20px] bg-[var(--blush-soft)] p-4">
+      <div className="rounded-[20px] bg-[linear-gradient(135deg,var(--brand-fog),var(--blush-soft))] p-4">
         <p className="flex items-center gap-2 text-xs font-extrabold uppercase tracking-[0.14em] text-[var(--rose-deep)]">
           <CalendarClock aria-hidden className="h-4 w-4" />
           Быстрая запись
@@ -133,7 +133,7 @@ export function BookingForm({
               <button
                 className={`min-h-[74px] rounded-[14px] border px-3 py-2 text-left transition ${
                   selectedDate === day.isoDate
-                    ? "border-[var(--rose)] bg-[var(--rose)] text-white shadow-[0_14px_32px_rgba(232,93,143,0.24)]"
+                    ? "border-[var(--brand-plum)] bg-[var(--brand-plum)] text-white shadow-[var(--shadow-cta)]"
                     : "border-[var(--rose-line)] bg-white text-[var(--ink)]"
                 }`}
                 key={day.isoDate}
@@ -163,7 +163,7 @@ export function BookingForm({
               <button
                 className={`min-h-11 rounded-[8px] border text-sm font-extrabold ${
                   selectedTime === time
-                    ? "border-[var(--ink)] bg-[var(--ink)] text-white"
+                    ? "border-[var(--chocolate)] bg-[var(--chocolate)] text-white"
                     : "border-[var(--rose-line)] bg-white text-[var(--ink)]"
                 }`}
                 key={time}
@@ -223,7 +223,7 @@ export function BookingForm({
       <button
         type="submit"
         disabled={status === "saving" || !selectedServiceId}
-        className="mt-5 inline-flex min-h-12 w-full items-center justify-center gap-2 rounded-full bg-[var(--rose)] px-5 text-sm font-black text-white shadow-[0_16px_34px_rgba(232,93,143,0.24)] hover:-translate-y-0.5 disabled:cursor-not-allowed disabled:opacity-70"
+        className="mt-5 inline-flex min-h-12 w-full items-center justify-center gap-2 rounded-full bg-[var(--brand-plum)] px-5 text-sm font-black text-white shadow-[var(--shadow-cta)] hover:-translate-y-0.5 disabled:cursor-not-allowed disabled:opacity-70"
       >
         {status === "saving" ? (
           <LoaderCircle aria-hidden className="h-4 w-4 animate-spin" />

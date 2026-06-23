@@ -12,7 +12,7 @@ const SalonMap = dynamic(
   {
     ssr: false,
     loading: () => (
-      <div className="grid h-[438px] place-items-center rounded-[20px] bg-[var(--blush-soft)] text-sm font-bold text-[var(--rose-deep)]">
+      <div className="grid h-[438px] place-items-center rounded-[20px] bg-[var(--brand-fog)] text-sm font-bold text-[var(--brand-plum)]">
         Загружаем карту...
       </div>
     ),
@@ -32,7 +32,7 @@ export function SalonMapPanel({ salons }: { salons: SalonSummary[] }) {
             Бишкек · {salons.length} салона в зоне
           </p>
         </div>
-        <span className="rounded-full bg-[var(--blush)] px-3 py-1 text-xs font-extrabold text-[var(--rose-deep)]">
+        <span className="rounded-full bg-[var(--brand-fog)] px-3 py-1 text-xs font-extrabold text-[var(--brand-plum)]">
           OSM
         </span>
       </div>
@@ -57,7 +57,7 @@ export function SalonMapPanel({ salons }: { salons: SalonSummary[] }) {
             </p>
           </div>
           <Link
-            className="inline-flex min-h-11 items-center justify-center rounded-full bg-[var(--rose)] px-5 text-sm font-extrabold text-white shadow-[0_16px_34px_rgba(232,93,143,0.22)]"
+            className="inline-flex min-h-11 items-center justify-center rounded-full bg-[var(--brand-plum)] px-5 text-sm font-extrabold text-white shadow-[var(--shadow-cta)]"
             href={`/salons/${nearest.slug}`}
           >
             Забронировать

@@ -21,7 +21,7 @@ export function SalonCard({
   return (
     <Link
       href={`/salons/${salon.slug}`}
-      className="group overflow-hidden rounded-[20px] border border-[var(--rose-line)] bg-white shadow-[var(--shadow-card)] transition-[transform,box-shadow,border-color] duration-300 hover:-translate-y-1 hover:border-[var(--rose)] hover:shadow-[0_28px_70px_rgba(191,75,119,0.16)]"
+      className="group overflow-hidden rounded-[20px] border border-[var(--rose-line)] bg-white shadow-[var(--shadow-card)] transition-[transform,box-shadow,border-color] duration-300 hover:-translate-y-1 hover:border-[var(--petal)] hover:shadow-[0_28px_70px_rgba(104,24,41,0.14)]"
     >
       <div className="relative h-36 overflow-hidden bg-[var(--blush-soft)]">
         <Image
@@ -64,7 +64,7 @@ export function SalonCard({
           <span className="rounded-full bg-[var(--blush-soft)] px-3 py-1 text-xs font-bold text-[var(--rose-deep)]">
             {formatPriceTier(salon.priceTier)}
           </span>
-          <span className="inline-flex items-center gap-1 rounded-full bg-[var(--cream)] px-3 py-1 text-xs font-bold text-[#8f5c18]">
+          <span className="inline-flex items-center gap-1 rounded-full bg-[var(--cream)] px-3 py-1 text-xs font-bold text-[var(--cocoa)]">
             <Star aria-hidden className="h-3.5 w-3.5 fill-current" />
             {salon.rating.toFixed(1)}
           </span>
@@ -74,7 +74,7 @@ export function SalonCard({
           <span className="text-sm font-extrabold text-[var(--ink)]">
             от {salon.priceTier * 300 + 300} сом
           </span>
-          <span className="inline-flex items-center gap-1 rounded-full bg-[var(--ink)] px-4 py-2 text-sm font-extrabold text-white">
+          <span className="inline-flex items-center gap-1 rounded-full bg-[var(--chocolate)] px-4 py-2 text-sm font-extrabold text-white">
             Записаться
             <ArrowUpRight aria-hidden className="h-4 w-4" />
           </span>

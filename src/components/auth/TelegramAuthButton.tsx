@@ -36,7 +36,7 @@ export function TelegramAuthButton({
   }
 
   const className =
-    "inline-flex min-h-11 items-center justify-center gap-2 rounded-full bg-[var(--rose)] px-4 text-sm font-extrabold text-white shadow-[0_16px_34px_rgba(232,93,143,0.24)] hover:-translate-y-0.5";
+    "inline-flex min-h-11 items-center justify-center gap-2 rounded-full bg-[var(--brand-plum)] px-4 text-sm font-extrabold text-white shadow-[var(--shadow-cta)] hover:-translate-y-0.5";
 
   if (telegramHref) {
     return (

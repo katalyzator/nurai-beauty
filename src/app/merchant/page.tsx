@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { ArrowLeft, CalendarDays, Store } from "lucide-react";
+import { BrandLogo } from "@/components/brand/BrandLogo";
 import { MerchantBookingsTable } from "@/components/merchant/MerchantBookingsTable";
 import { MerchantSalonSummary } from "@/components/merchant/MerchantSalonSummary";
 import { getMerchantDashboard } from "@/lib/domain/merchant";
@@ -18,7 +19,10 @@ export default async function MerchantPage() {
             <ArrowLeft aria-hidden className="h-4 w-4" />
             Маркетплейс
           </Link>
-          <span className="rounded-full bg-[var(--blush)] px-4 py-2 text-sm font-extrabold text-[var(--rose-deep)]">
+          <div className="hidden sm:block">
+            <BrandLogo compact />
+          </div>
+          <span className="rounded-full bg-[var(--brand-fog)] px-4 py-2 text-sm font-extrabold text-[var(--brand-plum)]">
             Кабинет салона
           </span>
         </header>

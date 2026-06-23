@@ -17,8 +17,18 @@ const cormorant = Cormorant_Garamond({
 });
 
 export const metadata: Metadata = {
+  metadataBase: new URL("https://nurai.beauty"),
   title: "NurAI",
-  description: "Find and book beauty salons in Bishkek.",
+  description: "Запись в салоны красоты Бишкека без ожидания ответа.",
+  icons: {
+    icon: "/brand/nurai-logo.png",
+    apple: "/brand/nurai-logo.png",
+  },
+  openGraph: {
+    title: "NurAI",
+    description: "Запись в салоны красоты Бишкека без ожидания ответа.",
+    images: ["/brand/nurai-logo.png"],
+  },
 };
 
 export default function RootLayout({

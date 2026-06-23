@@ -1,24 +1,33 @@
 @import "tailwindcss";
 
 :root {
-  --background: #fff8f6;
-  --foreground: #2a2022;
-  --ink: #2a2022;
-  --muted: #7b6870;
-  --soft: #a8939c;
-  --porcelain: #fff8f6;
+  --background: #f3fbff;
+  --foreground: #321812;
+  --ink: #321812;
+  --muted: #7f6b70;
+  --soft: #b3979f;
+  --porcelain: #f7fcff;
   --paper: #ffffff;
-  --blush: #ffe6ef;
-  --blush-soft: #fff0f5;
-  --rose: #e85d8f;
-  --rose-deep: #c83f73;
-  --rose-line: rgba(232, 93, 143, 0.2);
-  --sage: #7aa891;
-  --cream: #fff2dc;
-  --line: rgba(232, 93, 143, 0.15);
-  --shadow-soft: 0 24px 70px rgba(191, 75, 119, 0.14);
-  --shadow-card: 0 18px 48px rgba(191, 75, 119, 0.11);
-  --shadow-subtle: 0 10px 28px rgba(191, 75, 119, 0.1);
+  --brand-fog: #eef8fc;
+  --petal: #f4b0c0;
+  --petal-soft: #fff0f4;
+  --petal-warm: #f3c7bd;
+  --rose: #d95d84;
+  --rose-deep: #9b304b;
+  --brand-plum: #681829;
+  --chocolate: #421605;
+  --cocoa: #7f3f2f;
+  --blush: #ffe2ea;
+  --blush-soft: #fff2f6;
+  --rose-line: rgba(155, 48, 75, 0.18);
+  --petal-line: rgba(244, 176, 192, 0.45);
+  --sage: #7fa894;
+  --cream: #f8ded7;
+  --line: rgba(155, 48, 75, 0.13);
+  --shadow-soft: 0 24px 70px rgba(104, 24, 41, 0.12);
+  --shadow-card: 0 18px 48px rgba(104, 24, 41, 0.1);
+  --shadow-subtle: 0 10px 28px rgba(104, 24, 41, 0.08);
+  --shadow-cta: 0 16px 34px rgba(104, 24, 41, 0.22);
 }
 
 @theme inline {
@@ -40,15 +49,16 @@ html {
 body {
   min-height: 100vh;
   background:
-    radial-gradient(circle at 10% 4%, rgba(255, 230, 239, 0.72), transparent 30rem),
-    linear-gradient(180deg, #fff8f6 0%, #fffdfb 48%, #fff8f6 100%);
+    radial-gradient(circle at 14% 0%, rgba(244, 176, 192, 0.34), transparent 30rem),
+    radial-gradient(circle at 88% 6%, rgba(238, 248, 252, 0.9), transparent 26rem),
+    linear-gradient(180deg, #f3fbff 0%, #fffafd 42%, #f7fcff 100%);
   color: var(--foreground);
   font-family: var(--font-inter), sans-serif;
   letter-spacing: 0;
 }
 
 ::selection {
-  background: rgba(232, 93, 143, 0.25);
+  background: rgba(217, 93, 132, 0.25);
   color: var(--ink);
 }
 
@@ -75,7 +85,7 @@ a:focus-visible,
 select:focus-visible,
 input:focus-visible,
 textarea:focus-visible {
-  outline: 3px solid rgba(217, 148, 31, 0.45);
+  outline: 3px solid rgba(244, 176, 192, 0.7);
   outline-offset: 3px;
 }
 
@@ -94,9 +104,20 @@ textarea:focus-visible {
   z-index: -1;
   pointer-events: none;
   content: "";
-  opacity: 0.7;
-  background: linear-gradient(90deg, transparent, rgba(255, 230, 239, 0.45), transparent);
+  opacity: 0.65;
+  background:
+    linear-gradient(90deg, transparent, rgba(255, 226, 234, 0.42), transparent),
+    linear-gradient(180deg, rgba(238, 248, 252, 0.65), transparent 44%);
   mask-image: linear-gradient(to bottom, black, transparent 72%);
+}
+
+.brand-mark::after {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  content: "";
+  border-radius: inherit;
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.62);
 }
 
 .reveal-in {
@@ -113,7 +134,7 @@ textarea:focus-visible {
 
 .leaflet-container {
   font-family: var(--font-inter), sans-serif;
-  background: var(--blush-soft);
+  background: var(--brand-fog);
 }
 
 .leaflet-control-attribution {
@@ -128,21 +149,21 @@ textarea:focus-visible {
   place-items: center;
   border: 2px solid #fff;
   border-radius: 999px;
-  background: var(--rose);
+  background: linear-gradient(145deg, var(--petal), var(--rose-deep));
   box-shadow:
-    0 14px 34px rgba(200, 63, 115, 0.25),
-    0 0 0 8px rgba(232, 93, 143, 0.16);
+    0 14px 34px rgba(104, 24, 41, 0.22),
+    0 0 0 8px rgba(244, 176, 192, 0.18);
   color: #fff;
   font-size: 12px;
   font-weight: 800;
 }
 
 .nurai-marker.is-nearest {
-  background: var(--rose-deep);
+  background: linear-gradient(145deg, var(--brand-plum), var(--chocolate));
   color: #fff;
   box-shadow:
-    0 16px 38px rgba(200, 63, 115, 0.34),
-    0 0 0 10px rgba(232, 93, 143, 0.18);
+    0 16px 38px rgba(104, 24, 41, 0.32),
+    0 0 0 10px rgba(244, 176, 192, 0.18);
 }
 
 .leaflet-popup-content-wrapper {
