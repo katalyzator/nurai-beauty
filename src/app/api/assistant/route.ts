@@ -3,6 +3,7 @@ import { z } from "zod";
 import { getTelegramSession } from "@/lib/auth/telegram-session";
 import {
   assistantBoundaryReply,
+  buildAssistantFallbackResponse,
   buildDeterministicBookingResponse,
   buildLocalAssistantResponse,
   buildOpenRouterRequestBody,
@@ -126,7 +127,17 @@ export async function POST(request: Request) {
       throw new Error("OpenRouter returned an empty assistant message");
     }
 
-    return NextResponse.json(validateAssistantOutput(content, context));
+    const assistantOutput = validateAssistantOutput(content, context);
+    if (assistantOutput.intent === "boundary") {
+      return NextResponse.json(
+        buildAssistantFallbackResponse({
+          context,
+          message: input.data.message,
+        }),
+      );
+    }
+
+    return NextResponse.json(assistantOutput);
   } catch (error) {
     console.error(error);
     return NextResponse.json(

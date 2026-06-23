@@ -533,6 +533,91 @@ export function buildLocalAssistantResponse({
   };
 }
 
+export function buildAssistantFallbackResponse({
+  context,
+  message,
+}: {
+  context: AssistantContext;
+  message: string;
+}): AssistantOutput {
+  const normalizedMessage = normalizeText(message);
+
+  if (
+    normalizedMessage.includes("мои записи") ||
+    normalizedMessage.includes("какие у меня записи") ||
+    normalizedMessage.includes("свои записи")
+  ) {
+    if (!context.isTelegramAuthenticated) {
+      return {
+        intent: "own_bookings",
+        reply:
+          "По личным записям отвечаю только после Telegram-подтверждения. Я могу помочь выбрать салон и подготовить новую запись прямо сейчас.",
+        bookingDraft: null,
+        suggestions: ["Подобрать салон", "Записаться сегодня"],
+      };
+    }
+
+    if (context.ownBookings.length === 0) {
+      return {
+        intent: "own_bookings",
+        reply:
+          "У вас пока нет подтвержденных записей в nurAI. Могу подобрать салон и удобное время.",
+        bookingDraft: null,
+        suggestions: ["Показать ближайший салон", "Записаться сегодня"],
+      };
+    }
+
+    return {
+      intent: "own_bookings",
+      reply: [
+        "Ваши ближайшие записи:",
+        "",
+        ...context.ownBookings
+          .slice(0, 3)
+          .map(
+            (booking) =>
+              `• **${booking.salonName}** — ${booking.serviceName}, ${formatAssistantBookingDate(booking.startAt)}`,
+          ),
+      ].join("\n"),
+      bookingDraft: null,
+      suggestions: ["Перенести запись", "Записаться еще"],
+    };
+  }
+
+  const candidate = selectCatalogBookingCandidate(context, message);
+  if (candidate) {
+    const staff = selectStaff(candidate.salon, message) ?? candidate.salon.staff[0] ?? null;
+
+    return {
+      intent: "book",
+      reply: [
+        "Конечно, помогу записаться. Нашел подходящий вариант:",
+        "",
+        `• **${candidate.salon.name}**`,
+        `• ${candidate.service.name} — ${candidate.service.priceKgs} сом, ${candidate.service.durationMinutes} мин`,
+        `• ${staff ? `Мастер: ${staff.fullName}` : "Можно выбрать любого свободного мастера"}`,
+        "",
+        "Чтобы подготовить черновик записи, напишите удобное время, имя и телефон. Например: **«Сегодня 14:00, имя Айсулуу, телефон +996 700 000 000»**.",
+      ].join("\n"),
+      bookingDraft: null,
+      suggestions: ["Сегодня 11:00", "Сегодня 14:00", "Любой мастер"],
+    };
+  }
+
+  return {
+    intent: "browse",
+    reply: [
+      "Могу помочь подобрать салон, услугу, мастера и время в nurAI.",
+      "",
+      ...context.salons
+        .slice(0, 3)
+        .map((salon) => `• **${salon.name}** — ${salon.address}`),
+    ].join("\n"),
+    bookingDraft: null,
+    suggestions: ["Маникюр сегодня", "Показать ближайший салон", "Какие услуги есть?"],
+  };
+}
+
 export function buildDeterministicBookingResponse({
   context,
   message,
@@ -708,6 +793,16 @@ function addDaysToDate(date: string, days: number) {
   ].join("-");
 }
 
+function formatAssistantBookingDate(value: string) {
+  return new Intl.DateTimeFormat("ru-RU", {
+    day: "2-digit",
+    hour: "2-digit",
+    minute: "2-digit",
+    month: "long",
+    timeZone: "Asia/Bishkek",
+  }).format(new Date(value));
+}
+
 function normalizeAssistantIntent(intent: string): AssistantIntent {
   const normalized = intent.toLowerCase().trim();
 
@@ -715,22 +810,36 @@ function normalizeAssistantIntent(intent: string): AssistantIntent {
     normalized.includes("book") ||
     normalized.includes("booking") ||
     normalized.includes("appointment") ||
+    normalized.includes("запис") ||
+    normalized.includes("брон") ||
     ["schedule", "create_booking"].includes(normalized)
   ) {
     return "book";
   }
 
   if (
-    ["browse", "search", "salon_search", "recommendation"].includes(normalized)
+    ["browse", "search", "salon_search", "recommendation"].includes(normalized) ||
+    normalized.includes("подбор") ||
+    normalized.includes("поиск") ||
+    normalized.includes("салон")
   ) {
     return "browse";
   }
 
-  if (["own_bookings", "my_bookings", "bookings"].includes(normalized)) {
+  if (
+    ["own_bookings", "my_bookings", "bookings"].includes(normalized) ||
+    normalized.includes("мои записи") ||
+    normalized.includes("личные записи")
+  ) {
     return "own_bookings";
   }
 
-  if (["platform_help", "help", "merchant_help"].includes(normalized)) {
+  if (
+    ["platform_help", "help", "merchant_help"].includes(normalized) ||
+    normalized.includes("помощ") ||
+    normalized.includes("платформ") ||
+    normalized.includes("nurai")
+  ) {
     return "platform_help";
   }
 

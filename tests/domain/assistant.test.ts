@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 import {
   assistantBoundaryReply,
   buildDeterministicBookingResponse,
+  buildAssistantFallbackResponse,
   buildOpenRouterRequestBody,
   buildAssistantSystemPrompt,
   classifyAssistantMessage,
@@ -186,6 +187,33 @@ describe("nurAI assistant guardrails", () => {
     expect(output.intent).toBe("book");
     expect(output.reply).toContain("Могу помочь");
     expect(output.bookingDraft).toBeNull();
+  });
+
+  it("normalizes Russian model intent aliases instead of showing a boundary reply", () => {
+    const output = validateAssistantOutput(
+      JSON.stringify({
+        intent: "запись",
+        reply: "Конечно, помогу записаться. Выберите удобное время.",
+        bookingDraft: null,
+        suggestions: ["Сегодня 11:00", "Сегодня 14:00"],
+      }),
+      context,
+    );
+
+    expect(output.intent).toBe("book");
+    expect(output.reply).toContain("помогу записаться");
+  });
+
+  it("builds a safe booking fallback when the model rejects an allowed booking request", () => {
+    const output = buildAssistantFallbackResponse({
+      context,
+      message: "Хочу записаться на маникюр сегодня",
+    });
+
+    expect(output.intent).toBe("book");
+    expect(output.reply).toContain("Маникюр с гель-лаком");
+    expect(output.reply).toContain("имя");
+    expect(output.suggestions).toContain("Сегодня 11:00");
   });
 
   it("accepts booking_create drafts with null notes from OpenRouter", () => {
