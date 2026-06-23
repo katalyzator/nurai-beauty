@@ -3,6 +3,7 @@ import { z } from "zod";
 import { getTelegramSession } from "@/lib/auth/telegram-session";
 import {
   assistantBoundaryReply,
+  buildDeterministicBookingResponse,
   buildLocalAssistantResponse,
   buildOpenRouterRequestBody,
   classifyAssistantMessage,
@@ -57,14 +58,13 @@ export async function POST(request: Request) {
   const useLocalAssistantMock =
     process.env.NODE_ENV !== "production" &&
     process.env.NURAI_ASSISTANT_MOCK === "1";
+  const telegramSession = await getTelegramSession();
+  const context = await getAssistantContext({
+    telegramUserId: telegramSession?.telegramUserId ?? null,
+  });
 
   if (useLocalAssistantMock || !apiKey) {
     if (process.env.NODE_ENV !== "production") {
-      const telegramSession = await getTelegramSession();
-      const context = await getAssistantContext({
-        telegramUserId: telegramSession?.telegramUserId ?? null,
-      });
-
       return NextResponse.json(
         buildLocalAssistantResponse({
           context,
@@ -85,11 +85,15 @@ export async function POST(request: Request) {
     );
   }
 
+  const deterministicResponse = buildDeterministicBookingResponse({
+    context,
+    message: input.data.message,
+  });
+  if (deterministicResponse) {
+    return NextResponse.json(deterministicResponse);
+  }
+
   try {
-    const telegramSession = await getTelegramSession();
-    const context = await getAssistantContext({
-      telegramUserId: telegramSession?.telegramUserId ?? null,
-    });
     const model = process.env.OPENROUTER_MODEL ?? DEFAULT_OPENROUTER_MODEL;
     const response = await fetch("https://openrouter.ai/api/v1/chat/completions", {
       method: "POST",

@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import {
   assistantBoundaryReply,
+  buildDeterministicBookingResponse,
   buildOpenRouterRequestBody,
   buildAssistantSystemPrompt,
   classifyAssistantMessage,
@@ -130,6 +131,41 @@ describe("nurAI assistant guardrails", () => {
       serviceName: "Маникюр с гель-лаком",
       staffName: "Сезим",
     });
+  });
+
+  it("builds a deterministic booking draft from explicit user details", () => {
+    const output = buildDeterministicBookingResponse({
+      context,
+      message:
+        "Запиши меня на маникюр с гель-лаком в Erkindik Nails сегодня в 11:00 к Сезим. Имя Тест, телефон +996 700 000 000",
+    });
+
+    expect(output?.bookingDraft).toMatchObject({
+      salonName: "Erkindik Nails",
+      serviceName: "Маникюр с гель-лаком",
+      staffName: "Сезим",
+      clientName: "Тест",
+      clientPhone: "+996 700 000 000",
+      date: "2026-06-23",
+      time: "11:00",
+    });
+    expect(output?.reply).toContain("черновик");
+  });
+
+  it("keeps deterministic booking drafts assignable to any available master", () => {
+    const output = buildDeterministicBookingResponse({
+      context,
+      message:
+        "Запиши меня на маникюр завтра в 12:30 на любого мастера. Имя Айсулуу, телефон +996 700 000 000",
+    });
+
+    expect(output?.bookingDraft).toMatchObject({
+      staffId: null,
+      staffName: null,
+      date: "2026-06-24",
+      time: "12:30",
+    });
+    expect(output?.reply).toContain("Любой свободный мастер");
   });
 
   it("normalizes safe model intent aliases instead of dropping the answer", () => {

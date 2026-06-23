@@ -533,6 +533,181 @@ export function buildLocalAssistantResponse({
   };
 }
 
+export function buildDeterministicBookingResponse({
+  context,
+  message,
+}: {
+  context: AssistantContext;
+  message: string;
+}): AssistantOutput | null {
+  const time = extractBookingTime(message);
+  const phone = extractBookingPhone(message);
+  const clientName = extractClientName(message);
+  const date = extractBookingDate(message, context.currentDate);
+  const candidate = selectCatalogBookingCandidate(context, message);
+
+  if (!time || !phone || !clientName || !date || !candidate) {
+    return null;
+  }
+
+  const staff = selectStaff(candidate.salon, message);
+  const draft: AssistantBookingDraft = {
+    salonId: candidate.salon.id,
+    salonSlug: candidate.salon.slug,
+    salonName: candidate.salon.name,
+    serviceId: candidate.service.id,
+    serviceName: candidate.service.name,
+    staffId: staff?.id ?? null,
+    staffName: staff?.fullName ?? null,
+    clientName,
+    clientPhone: phone,
+    date,
+    time,
+  };
+
+  return {
+    intent: "book",
+    reply: [
+      "Подготовил черновик записи. Проверьте детали и нажмите **«Подтвердить запись»**:",
+      "",
+      `• **${draft.salonName}**`,
+      `• ${draft.serviceName} — ${candidate.service.priceKgs} сом`,
+      `• ${draft.staffName ? `Мастер: ${draft.staffName}` : "Любой свободный мастер"}`,
+      `• ${draft.date} в ${draft.time}`,
+    ].join("\n"),
+    bookingDraft: draft,
+    suggestions: ["Подтвердить запись", "Изменить время", "Выбрать другого мастера"],
+  };
+}
+
+function extractBookingTime(message: string) {
+  return message.match(/\b([01]\d|2[0-3]):([0-5]\d)\b/)?.[0] ?? null;
+}
+
+function extractBookingPhone(message: string) {
+  return (
+    message.match(/\+996[\d\s().-]{7,18}/)?.[0].trim() ??
+    message.match(/\b0\d{9}\b/)?.[0] ??
+    null
+  );
+}
+
+function extractClientName(message: string) {
+  const match = message.match(
+    /(?:имя|меня зовут)\s+([A-Za-zА-Яа-яЁё-]{2,40})/i,
+  );
+
+  return match?.[1] ?? null;
+}
+
+function extractBookingDate(message: string, currentDate: string) {
+  const normalized = normalizeText(message);
+  const isoDate = message.match(/\b\d{4}-\d{2}-\d{2}\b/)?.[0];
+  if (isoDate) return isoDate;
+
+  const numericDate = message.match(/\b(\d{1,2})[./-](\d{1,2})(?:[./-](\d{2,4}))?\b/);
+  if (numericDate) {
+    const year =
+      numericDate[3]?.length === 2
+        ? `20${numericDate[3]}`
+        : numericDate[3] ?? currentDate.slice(0, 4);
+
+    return [
+      year,
+      numericDate[2].padStart(2, "0"),
+      numericDate[1].padStart(2, "0"),
+    ].join("-");
+  }
+
+  if (normalized.includes("послезавтра")) return addDaysToDate(currentDate, 2);
+  if (normalized.includes("завтра")) return addDaysToDate(currentDate, 1);
+  if (normalized.includes("сегодня")) return currentDate;
+
+  return null;
+}
+
+function selectCatalogBookingCandidate(
+  context: AssistantContext,
+  message: string,
+):
+  | {
+      salon: AssistantCatalogSalon;
+      service: AssistantCatalogService;
+    }
+  | null {
+  const normalizedMessage = normalizeText(message);
+  let selected:
+    | {
+        salon: AssistantCatalogSalon;
+        service: AssistantCatalogService;
+        score: number;
+      }
+    | null = null;
+
+  for (const salon of context.salons) {
+    const salonScore = normalizedMessage.includes(normalizeText(salon.name))
+      ? 8
+      : 0;
+
+    for (const service of salon.services) {
+      const serviceScore = scoreServiceMatch(service, normalizedMessage);
+      if (serviceScore === 0) continue;
+
+      const score = salonScore + serviceScore;
+      if (!selected || score > selected.score) {
+        selected = { salon, service, score };
+      }
+    }
+  }
+
+  return selected ? { salon: selected.salon, service: selected.service } : null;
+}
+
+function scoreServiceMatch(
+  service: AssistantCatalogService,
+  normalizedMessage: string,
+) {
+  const serviceName = normalizeText(service.name);
+  const category = normalizeText(service.category);
+  if (normalizedMessage.includes(serviceName)) return 24;
+  if (normalizedMessage.includes(category)) return 12;
+
+  return [service.name, service.category]
+    .flatMap((value) => normalizeText(value).split(/\s+/))
+    .filter((word) => word.length >= 4)
+    .reduce(
+      (score, word) => score + (normalizedMessage.includes(word) ? 4 : 0),
+      0,
+    );
+}
+
+function selectStaff(salon: AssistantCatalogSalon, message: string) {
+  const normalizedMessage = normalizeText(message);
+
+  return (
+    salon.staff.find((staff) =>
+      normalizeText(staff.fullName)
+        .split(/\s+/)
+        .some((word) => word.length >= 2 && normalizedMessage.includes(word)),
+    ) ?? null
+  );
+}
+
+function normalizeText(value: string) {
+  return value.toLowerCase().replace(/ё/g, "е").replace(/[^a-zа-я0-9]+/g, " ").trim();
+}
+
+function addDaysToDate(date: string, days: number) {
+  const [year, month, day] = date.split("-").map(Number);
+  const next = new Date(Date.UTC(year, month - 1, day + days));
+
+  return [
+    next.getUTCFullYear(),
+    String(next.getUTCMonth() + 1).padStart(2, "0"),
+    String(next.getUTCDate()).padStart(2, "0"),
+  ].join("-");
+}
+
 function normalizeAssistantIntent(intent: string): AssistantIntent {
   const normalized = intent.toLowerCase().trim();
 
