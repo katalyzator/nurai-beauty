@@ -16,7 +16,7 @@ export default async function HomePage({
     .then((salons) => ({ salons }))
     .catch(() => ({
       salons: [],
-      errorMessage: "Salon data is temporarily unavailable.",
+      errorMessage: "Данные салонов временно недоступны.",
     }));
 
   return <SalonSearchShell {...salonResult} />;

@@ -47,6 +47,7 @@ export type BookingInput = {
   staffId: string | null;
   clientName: string;
   clientPhone: string;
+  telegramUserId?: number | null;
   startAt: string;
   source: "web" | "telegram" | "merchant_manual";
   notes?: string;
@@ -59,6 +60,7 @@ export type Booking = {
   staffId: string | null;
   clientName: string;
   clientPhone: string;
+  telegramUserId: number | null;
   startAt: string;
   endAt: string;
   status: "new" | "confirmed" | "completed" | "cancelled" | "no_show";

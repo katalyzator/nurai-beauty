@@ -1,19 +1,188 @@
 @import "tailwindcss";
 
 :root {
-  --background: #f7f3ef;
-  --foreground: #181512;
+  --background: #fff8f6;
+  --foreground: #2a2022;
+  --ink: #2a2022;
+  --muted: #7b6870;
+  --soft: #a8939c;
+  --porcelain: #fff8f6;
+  --paper: #ffffff;
+  --blush: #ffe6ef;
+  --blush-soft: #fff0f5;
+  --rose: #e85d8f;
+  --rose-deep: #c83f73;
+  --rose-line: rgba(232, 93, 143, 0.2);
+  --sage: #7aa891;
+  --cream: #fff2dc;
+  --line: rgba(232, 93, 143, 0.15);
+  --shadow-soft: 0 24px 70px rgba(191, 75, 119, 0.14);
+  --shadow-card: 0 18px 48px rgba(191, 75, 119, 0.11);
+  --shadow-subtle: 0 10px 28px rgba(191, 75, 119, 0.1);
 }
 
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+  --font-sans: var(--font-inter);
+  --font-display: var(--font-cormorant);
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html {
+  min-height: 100%;
+  background: var(--background);
 }
 
 body {
-  background: var(--background);
+  min-height: 100vh;
+  background:
+    radial-gradient(circle at 10% 4%, rgba(255, 230, 239, 0.72), transparent 30rem),
+    linear-gradient(180deg, #fff8f6 0%, #fffdfb 48%, #fff8f6 100%);
   color: var(--foreground);
-  font-family: var(--font-geist-sans), Arial, Helvetica, sans-serif;
+  font-family: var(--font-inter), sans-serif;
+  letter-spacing: 0;
+}
+
+::selection {
+  background: rgba(232, 93, 143, 0.25);
+  color: var(--ink);
+}
+
+a,
+button,
+select,
+input,
+textarea {
+  -webkit-tap-highlight-color: transparent;
+}
+
+button,
+a {
+  transition:
+    transform 180ms ease,
+    border-color 180ms ease,
+    background-color 180ms ease,
+    color 180ms ease,
+    box-shadow 180ms ease;
+}
+
+button:focus-visible,
+a:focus-visible,
+select:focus-visible,
+input:focus-visible,
+textarea:focus-visible {
+  outline: 3px solid rgba(217, 148, 31, 0.45);
+  outline-offset: 3px;
+}
+
+.font-display {
+  font-family: var(--font-cormorant), Georgia, serif;
+}
+
+.beauty-shell {
+  position: relative;
+  overflow: hidden;
+}
+
+.beauty-shell::before {
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  content: "";
+  opacity: 0.7;
+  background: linear-gradient(90deg, transparent, rgba(255, 230, 239, 0.45), transparent);
+  mask-image: linear-gradient(to bottom, black, transparent 72%);
+}
+
+.reveal-in {
+  animation: reveal-in 620ms cubic-bezier(0.19, 1, 0.22, 1) both;
+}
+
+.reveal-in-delayed {
+  animation: reveal-in 760ms cubic-bezier(0.19, 1, 0.22, 1) 120ms both;
+}
+
+.float-soft {
+  animation: float-soft 5.5s ease-in-out infinite;
+}
+
+.leaflet-container {
+  font-family: var(--font-inter), sans-serif;
+  background: var(--blush-soft);
+}
+
+.leaflet-control-attribution {
+  border-radius: 999px 0 0 0;
+  font-size: 10px;
+}
+
+.nurai-marker {
+  display: grid;
+  width: 34px;
+  height: 34px;
+  place-items: center;
+  border: 2px solid #fff;
+  border-radius: 999px;
+  background: var(--rose);
+  box-shadow:
+    0 14px 34px rgba(200, 63, 115, 0.25),
+    0 0 0 8px rgba(232, 93, 143, 0.16);
+  color: #fff;
+  font-size: 12px;
+  font-weight: 800;
+}
+
+.nurai-marker.is-nearest {
+  background: var(--rose-deep);
+  color: #fff;
+  box-shadow:
+    0 16px 38px rgba(200, 63, 115, 0.34),
+    0 0 0 10px rgba(232, 93, 143, 0.18);
+}
+
+.leaflet-popup-content-wrapper {
+  border-radius: 14px;
+  box-shadow: var(--shadow-card);
+}
+
+.leaflet-popup-content {
+  margin: 12px 14px;
+  color: var(--ink);
+}
+
+@keyframes reveal-in {
+  from {
+    opacity: 0;
+    transform: translateY(22px) scale(0.985);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+@keyframes float-soft {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-8px);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 1ms !important;
+    animation-iteration-count: 1 !important;
+    scroll-behavior: auto !important;
+    transition-duration: 1ms !important;
+  }
 }

@@ -1,9 +1,11 @@
 "use client";
 
-import { useRouter, useSearchParams } from "next/navigation";
+import { LoaderCircle, LocateFixed } from "lucide-react";
+import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { useState } from "react";
 
 export function LocationButton() {
+  const pathname = usePathname();
   const router = useRouter();
   const searchParams = useSearchParams();
   const [status, setStatus] = useState<"idle" | "loading" | "denied">("idle");
@@ -20,7 +22,7 @@ export function LocationButton() {
         const next = new URLSearchParams(searchParams.toString());
         next.set("lat", String(position.coords.latitude));
         next.set("lng", String(position.coords.longitude));
-        router.push(`/?${next.toString()}`);
+        router.push(`${pathname}?${next.toString()}`);
       },
       () => setStatus("denied"),
       { enableHighAccuracy: true, timeout: 8000 },
@@ -28,17 +30,22 @@ export function LocationButton() {
   }
 
   return (
-    <div className="flex flex-wrap items-center gap-3">
+    <div className="flex flex-wrap items-center gap-2">
       <button
         type="button"
         onClick={useMyLocation}
-        className="rounded-md border border-stone-300 bg-white px-3 py-2 text-sm font-medium text-stone-950"
+        className="inline-flex min-h-12 items-center justify-center gap-2 rounded-full border border-[var(--rose-line)] bg-[var(--blush-soft)] px-4 text-sm font-extrabold text-[var(--rose-deep)] hover:-translate-y-0.5 hover:border-[var(--rose)]"
       >
-        {status === "loading" ? "Finding you..." : "Show nearest salons"}
+        {status === "loading" ? (
+          <LoaderCircle aria-hidden className="h-4 w-4 animate-spin" />
+        ) : (
+          <LocateFixed aria-hidden className="h-4 w-4" />
+        )}
+        {status === "loading" ? "Ищем рядом..." : "Рядом со мной"}
       </button>
       {status === "denied" && (
-        <span className="text-sm text-stone-500">
-          Location unavailable. Showing central Bishkek.
+        <span className="max-w-52 text-xs font-semibold text-[var(--muted)]">
+          Показываем центр Бишкека.
         </span>
       )}
     </div>

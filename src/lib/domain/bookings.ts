@@ -8,6 +8,7 @@ export const bookingInputSchema = z.object({
   staffId: z.string().uuid().nullable(),
   clientName: z.string().min(2).max(120),
   clientPhone: z.string().min(7).max(32),
+  telegramUserId: z.number().int().positive().nullable().optional(),
   startAt: z.iso.datetime(),
   source: z.enum(["web", "telegram", "merchant_manual"]),
   notes: z.string().max(500).optional(),
@@ -43,13 +44,14 @@ export async function createBooking(input: BookingInput): Promise<Booking> {
       staff_id: parsed.staffId,
       client_name: parsed.clientName,
       client_phone: parsed.clientPhone,
+      telegram_user_id: parsed.telegramUserId ?? null,
       start_at: parsed.startAt,
       end_at: endAt,
       source: parsed.source,
       notes: parsed.notes ?? null,
     })
     .select(
-      "id,salon_id,service_id,staff_id,client_name,client_phone,start_at,end_at,status,source",
+      "id,salon_id,service_id,staff_id,client_name,client_phone,telegram_user_id,start_at,end_at,status,source",
     )
     .single();
 
@@ -62,6 +64,7 @@ export async function createBooking(input: BookingInput): Promise<Booking> {
     staffId: data.staff_id,
     clientName: data.client_name,
     clientPhone: data.client_phone,
+    telegramUserId: data.telegram_user_id,
     startAt: data.start_at,
     endAt: data.end_at,
     status: data.status,

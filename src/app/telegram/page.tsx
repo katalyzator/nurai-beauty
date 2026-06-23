@@ -6,12 +6,8 @@ export default async function TelegramMiniAppPage() {
     .then((salons) => ({ salons }))
     .catch(() => ({
       salons: [],
-      errorMessage: "Salon data is temporarily unavailable.",
+      errorMessage: "Данные салонов временно недоступны.",
     }));
 
-  return (
-    <div className="min-h-screen bg-white">
-      <SalonSearchShell {...salonResult} />
-    </div>
-  );
+  return <SalonSearchShell {...salonResult} />;
 }

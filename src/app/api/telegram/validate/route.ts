@@ -10,6 +10,8 @@ export async function POST(request: Request) {
   }
 
   return NextResponse.json({
-    valid: validateTelegramInitData(initData, botToken),
+    valid: validateTelegramInitData(initData, botToken, {
+      maxAgeSeconds: 60 * 60 * 24,
+    }),
   });
 }

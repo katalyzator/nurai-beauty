@@ -1,3 +1,4 @@
+import { Inbox, Phone } from "lucide-react";
 import type { MerchantBooking } from "@/lib/domain/merchant";
 
 export function MerchantBookingsTable({
@@ -6,21 +7,50 @@ export function MerchantBookingsTable({
   bookings: MerchantBooking[];
 }) {
   return (
-    <section className="rounded-lg border bg-white">
-      <div className="border-b p-4">
-        <h2 className="font-semibold text-stone-950">Bookings</h2>
+    <section className="overflow-hidden rounded-[24px] border border-[var(--rose-line)] bg-white shadow-[var(--shadow-subtle)]">
+      <div className="flex items-center justify-between border-b border-[var(--line)] p-5">
+        <div>
+          <p className="text-xs font-extrabold uppercase tracking-[0.14em] text-[var(--rose-deep)]">
+            Заявки
+          </p>
+          <h2 className="mt-1 text-2xl font-black tracking-[-0.04em]">
+            Заявки клиентов
+          </h2>
+        </div>
+        <span className="rounded-full bg-[var(--blush)] px-3 py-1 text-sm font-extrabold text-[var(--rose-deep)]">
+          {bookings.length}
+        </span>
       </div>
-      <div className="divide-y">
+      <div className="divide-y divide-[var(--line)]">
         {bookings.length === 0 && (
-          <p className="p-4 text-sm text-stone-500">No bookings yet.</p>
+          <div className="grid place-items-center px-6 py-14 text-center">
+            <div className="grid h-14 w-14 place-items-center rounded-full bg-[var(--blush)] text-[var(--rose-deep)]">
+              <Inbox aria-hidden className="h-6 w-6" />
+            </div>
+            <p className="mt-4 text-lg font-black text-[var(--ink)]">
+              Новых заявок пока нет
+            </p>
+            <p className="mt-2 max-w-md text-sm font-bold leading-6 text-[var(--muted)]">
+              Когда клиент запишется через маркетплейс или Telegram Mini App,
+              заявка появится здесь.
+            </p>
+          </div>
         )}
         {bookings.map((booking) => (
-          <div key={booking.id} className="grid gap-1 p-4 md:grid-cols-5">
-            <span>{booking.salonName}</span>
+          <div
+            key={booking.id}
+            className="grid gap-3 p-5 text-sm font-bold text-[var(--muted)] lg:grid-cols-[1.1fr_1fr_1fr_1.1fr_0.7fr]"
+          >
+            <span className="text-[var(--ink)]">{booking.salonName}</span>
             <span>{booking.clientName}</span>
-            <span>{booking.clientPhone}</span>
-            <span>{new Date(booking.startAt).toLocaleString()}</span>
-            <span>{booking.status}</span>
+            <span className="flex items-center gap-2">
+              <Phone aria-hidden className="h-4 w-4 text-[var(--rose)]" />
+              {booking.clientPhone}
+            </span>
+            <span>{new Date(booking.startAt).toLocaleString("ru-RU")}</span>
+            <span className="rounded-full bg-[var(--blush-soft)] px-3 py-1 text-center text-xs font-extrabold uppercase tracking-[0.12em] text-[var(--rose-deep)]">
+              {booking.status}
+            </span>
           </div>
         ))}
       </div>

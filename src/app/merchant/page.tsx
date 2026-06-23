@@ -1,3 +1,5 @@
+import Link from "next/link";
+import { ArrowLeft, CalendarDays, Store } from "lucide-react";
 import { MerchantBookingsTable } from "@/components/merchant/MerchantBookingsTable";
 import { MerchantSalonSummary } from "@/components/merchant/MerchantSalonSummary";
 import { getMerchantDashboard } from "@/lib/domain/merchant";
@@ -6,13 +8,55 @@ export default async function MerchantPage() {
   const dashboard = await getMerchantDashboard();
 
   return (
-    <main className="mx-auto max-w-6xl px-4 py-6">
-      <h1 className="text-2xl font-semibold text-stone-950">
-        Merchant cabinet
-      </h1>
-      <div className="mt-6 grid gap-6">
-        <MerchantSalonSummary salons={dashboard.salons} />
-        <MerchantBookingsTable bookings={dashboard.bookings} />
+    <main className="beauty-shell min-h-screen px-3 py-4 sm:px-5 lg:px-8">
+      <div className="mx-auto max-w-[1400px]">
+        <header className="flex min-h-16 items-center justify-between gap-4 border-b border-[var(--rose-line)]">
+          <Link
+            href="/"
+            className="inline-flex min-h-11 items-center gap-2 rounded-full border border-[var(--rose-line)] bg-white px-4 text-sm font-extrabold text-[var(--ink)] shadow-[var(--shadow-subtle)] hover:-translate-y-0.5"
+          >
+            <ArrowLeft aria-hidden className="h-4 w-4" />
+            Маркетплейс
+          </Link>
+          <span className="rounded-full bg-[var(--blush)] px-4 py-2 text-sm font-extrabold text-[var(--rose-deep)]">
+            Кабинет салона
+          </span>
+        </header>
+
+        <section className="mt-6 rounded-[28px] border border-[var(--rose-line)] bg-white p-6 shadow-[var(--shadow-card)] sm:p-8">
+          <p className="flex items-center gap-2 text-xs font-extrabold uppercase tracking-[0.14em] text-[var(--rose-deep)]">
+            <Store aria-hidden className="h-4 w-4" />
+            Кабинет партнера
+          </p>
+          <div className="mt-6 grid gap-5 lg:grid-cols-[minmax(0,1fr)_320px] lg:items-end">
+            <div>
+              <h1 className="font-display text-5xl font-semibold leading-none sm:text-6xl">
+                Управление записями
+              </h1>
+              <p className="mt-4 max-w-2xl text-base leading-7 text-[var(--muted)]">
+                Салон видит входящие заявки, клиентов и расписание без
+                потерянных сообщений в WhatsApp.
+              </p>
+            </div>
+            <div className="rounded-[20px] border border-[var(--rose-line)] bg-[var(--porcelain)] p-4">
+              <p className="flex items-center gap-2 text-sm font-bold text-[var(--muted)]">
+                <CalendarDays aria-hidden className="h-4 w-4" />
+                Сегодня
+              </p>
+              <p className="mt-2 font-display text-5xl font-bold leading-none">
+                {dashboard.bookings.length}
+              </p>
+              <p className="mt-1 text-xs font-bold uppercase tracking-[0.14em] text-[var(--soft)]">
+                новых заявок
+              </p>
+            </div>
+          </div>
+        </section>
+
+        <div className="mt-6 grid gap-5">
+          <MerchantSalonSummary salons={dashboard.salons} />
+          <MerchantBookingsTable bookings={dashboard.bookings} />
+        </div>
       </div>
     </main>
   );
