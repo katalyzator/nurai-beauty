@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { getTelegramSession } from "@/lib/auth/telegram-session";
 import { createBooking } from "@/lib/domain/bookings";
+import { sendTelegramBookingConfirmation } from "@/lib/server/telegram-booking-notifications";
 
 export async function POST(request: Request) {
   try {
@@ -18,6 +19,12 @@ export async function POST(request: Request) {
       ...input,
       telegramUserId: telegramSession?.telegramUserId ?? null,
     });
+    if (booking.telegramUserId) {
+      await sendTelegramBookingConfirmation(booking.id).catch((error) => {
+        console.error(error);
+      });
+    }
+
     return NextResponse.json({ booking }, { status: 201 });
   } catch (error) {
     return NextResponse.json(

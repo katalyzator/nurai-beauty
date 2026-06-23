@@ -1,6 +1,6 @@
 import fs from "node:fs";
 import { createClient } from "@supabase/supabase-js";
-import { expect, test } from "@playwright/test";
+import { expect, test, type Page } from "@playwright/test";
 
 function readLocalEnv() {
   if (!fs.existsSync(".env.local")) return {};
@@ -30,11 +30,18 @@ test("salon profile creates a web booking", async ({ page }) => {
   await page.goto("/salons/erkindik-nails");
   await page.getByRole("button", { name: /Сезим/ }).click();
   await expect(page.getByText("Мастер: Сезим")).toBeVisible();
+  const chosenTime = await chooseFirstFreeTime(page);
   await page.getByLabel("Имя").fill("E2E Client");
   await page.getByLabel("Телефон").fill(phone);
   await page.getByRole("button", { name: "Записаться" }).click();
 
   await expect(page.getByText("Заявка создана")).toBeVisible();
+  await page.reload();
+  await page.getByRole("button", { name: /Сезим/ }).click();
+  await expect(page.getByTestId(`booking-time-${chosenTime}`)).toBeDisabled();
+  await expect(page.getByTestId(`booking-time-${chosenTime}`)).toContainText(
+    "Занято",
+  );
 
   const env = { ...readLocalEnv(), ...process.env };
   const url = env.NEXT_PUBLIC_SUPABASE_URL;
@@ -46,3 +53,21 @@ test("salon profile creates a web booking", async ({ page }) => {
     await supabase.from("bookings").delete().eq("client_phone", phone);
   }
 });
+
+async function chooseFirstFreeTime(page: Page) {
+  const buttons = page.getByTestId(/^booking-time-/);
+  const count = await buttons.count();
+
+  for (let index = 0; index < count; index += 1) {
+    const button = buttons.nth(index);
+    if (await button.isEnabled()) {
+      const time = await button.getAttribute("data-booking-time");
+      if (!time) break;
+
+      await button.click();
+      return time;
+    }
+  }
+
+  throw new Error("No free booking time was available in the test salon");
+}

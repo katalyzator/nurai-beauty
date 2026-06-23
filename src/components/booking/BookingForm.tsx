@@ -43,6 +43,8 @@ export function BookingForm({
     salon.services[0]?.id ?? "",
   );
   const [internalStaffId, setInternalStaffId] = useState("");
+  const [unavailableTimes, setUnavailableTimes] = useState<string[]>([]);
+  const [loadedAvailabilityKey, setLoadedAvailabilityKey] = useState("");
   const days = useMemo(() => createBookingDays(new Date(), 6), []);
   const [selectedDate, setSelectedDate] = useState(days[0]?.isoDate ?? "");
   const [selectedTime, setSelectedTime] = useState("12:30");
@@ -59,6 +61,22 @@ export function BookingForm({
     ? [user.firstName, user.lastName].filter(Boolean).join(" ")
     : "";
   const effectiveClientName = clientName || telegramName;
+  const selectedTimeUnavailable = unavailableTimes.includes(selectedTime);
+  const availabilityKey = useMemo(() => {
+    if (!selectedDate || !selectedServiceId) return "";
+
+    const params = new URLSearchParams({
+      date: selectedDate,
+      salonId: salon.id,
+      serviceId: selectedServiceId,
+    });
+    if (selectedStaffId) params.set("staffId", selectedStaffId);
+
+    return params.toString();
+  }, [salon.id, selectedDate, selectedServiceId, selectedStaffId]);
+  const loadingAvailability = Boolean(
+    availabilityKey && loadedAvailabilityKey !== availabilityKey,
+  );
 
   function updateStaffId(staffId: string) {
     setInternalStaffId(staffId);
@@ -80,9 +98,51 @@ export function BookingForm({
       window.removeEventListener("nurai:staff-selection", handleStaffSelection);
   }, []);
 
+  useEffect(() => {
+    if (!availabilityKey) return;
+
+    const controller = new AbortController();
+
+    fetch(`/api/bookings/availability?${availabilityKey}`, {
+      signal: controller.signal,
+    })
+      .then(async (response) => {
+        if (!response.ok) throw new Error("Availability request failed");
+        return response.json() as Promise<{ unavailableTimes: string[] }>;
+      })
+      .then((data) => {
+        const nextUnavailableTimes = data.unavailableTimes ?? [];
+        setUnavailableTimes(nextUnavailableTimes);
+
+        setSelectedTime((currentSelectedTime) => {
+          if (!nextUnavailableTimes.includes(currentSelectedTime)) {
+            return currentSelectedTime;
+          }
+          const nextTime = defaultBookingTimes.find(
+            (time) => !nextUnavailableTimes.includes(time),
+          );
+          return nextTime ?? currentSelectedTime;
+        });
+      })
+      .catch((error) => {
+        if (error instanceof DOMException && error.name === "AbortError") return;
+        setUnavailableTimes([]);
+      })
+      .finally(() => {
+        if (!controller.signal.aborted) setLoadedAvailabilityKey(availabilityKey);
+      });
+
+    return () => controller.abort();
+  }, [availabilityKey]);
+
   async function submit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
     if (!selectedServiceId || !selectedDate || !selectedTime) return;
+    if (selectedTimeUnavailable) {
+      setStatus("error");
+      setErrorMessage("Это время уже занято. Выберите другой слот.");
+      return;
+    }
     if (bookingSource === "telegram" && !authenticated) {
       setStatus("error");
       setErrorMessage(
@@ -110,6 +170,11 @@ export function BookingForm({
     });
 
     if (response.ok) {
+      if (selectedStaffId) {
+        setUnavailableTimes((current) =>
+          Array.from(new Set([...current, selectedTime])),
+        );
+      }
       setStatus("saved");
       return;
     }
@@ -208,21 +273,41 @@ export function BookingForm({
             Время
           </p>
           <div className="grid grid-cols-3 gap-2">
-            {defaultBookingTimes.map((time) => (
-              <button
-                className={`min-h-11 rounded-[8px] border text-sm font-extrabold ${
-                  selectedTime === time
-                    ? "border-[var(--chocolate)] bg-[var(--chocolate)] text-white"
-                    : "border-[var(--rose-line)] bg-white text-[var(--ink)]"
-                }`}
-                key={time}
-                onClick={() => setSelectedTime(time)}
-                type="button"
-              >
-                {time}
-              </button>
-            ))}
+            {defaultBookingTimes.map((time) => {
+              const unavailable = unavailableTimes.includes(time);
+
+              return (
+                <button
+                  className={`min-h-11 rounded-[8px] border px-2 text-sm font-extrabold ${
+                    unavailable
+                      ? "cursor-not-allowed border-[var(--line)] bg-[var(--porcelain)] text-[var(--soft)]"
+                      : selectedTime === time
+                        ? "border-[var(--chocolate)] bg-[var(--chocolate)] text-white"
+                        : "border-[var(--rose-line)] bg-white text-[var(--ink)]"
+                  }`}
+                  aria-label={unavailable ? `${time} занято` : `${time} свободно`}
+                  data-booking-time={time}
+                  data-testid={`booking-time-${time}`}
+                  disabled={unavailable}
+                  key={time}
+                  onClick={() => setSelectedTime(time)}
+                  type="button"
+                >
+                  <span className="block">{time}</span>
+                  {unavailable ? (
+                    <span className="block text-[10px] font-bold">Занято</span>
+                  ) : null}
+                </button>
+              );
+            })}
           </div>
+          <p className="mt-2 min-h-5 text-xs font-bold text-[var(--muted)]">
+            {loadingAvailability
+              ? "Проверяем свободные окна..."
+              : selectedStaff
+                ? `Свободные окна для мастера ${selectedStaff.fullName}`
+                : "Для записи без выбора мастера покажем слот, если свободен хотя бы один мастер."}
+          </p>
         </div>
 
         <Field label="Имя" icon={<User aria-hidden className="h-4 w-4" />}>
@@ -281,6 +366,8 @@ export function BookingForm({
         disabled={
           status === "saving" ||
           !selectedServiceId ||
+          selectedTimeUnavailable ||
+          loadingAvailability ||
           (bookingSource === "telegram" && authLoading)
         }
         className="mt-5 inline-flex min-h-12 w-full items-center justify-center gap-2 rounded-full bg-[var(--brand-plum)] px-5 text-sm font-black text-white shadow-[var(--shadow-cta)] hover:-translate-y-0.5 disabled:cursor-not-allowed disabled:opacity-70"
