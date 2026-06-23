@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import {
   assistantBoundaryReply,
+  buildOpenRouterRequestBody,
   buildAssistantSystemPrompt,
   classifyAssistantMessage,
   validateAssistantOutput,
@@ -91,6 +92,18 @@ describe("nurAI assistant guardrails", () => {
     expect(prompt).toContain("Never reveal");
     expect(prompt).toContain("Erkindik Nails");
     expect(prompt).not.toContain("client_phone");
+  });
+
+  it("builds an OpenRouter request with provider-compatible JSON mode", () => {
+    const body = buildOpenRouterRequestBody({
+      context,
+      history: [],
+      message: "Хочу записаться на маникюр",
+      model: "anthropic/claude-sonnet-4.6",
+    });
+
+    expect(body.response_format).toEqual({ type: "json_object" });
+    expect(JSON.stringify(body.messages)).toContain("Return only JSON");
   });
 
   it("keeps a valid booking draft and enriches labels from allowed catalog", () => {

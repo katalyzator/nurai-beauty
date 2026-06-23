@@ -73,6 +73,11 @@ export type AssistantOutput = {
   suggestions: string[];
 };
 
+export type AssistantHistoryMessage = {
+  role: "user" | "assistant";
+  content: string;
+};
+
 type AssistantBlockReason =
   | "prompt_injection"
   | "secrets"
@@ -211,6 +216,9 @@ export function buildAssistantSystemPrompt(context: AssistantContext) {
     "Do not claim that a booking is confirmed. If enough details are present, return bookingDraft so the app can show a confirmation button and create the booking through nurAI APIs.",
     "Use only salons, services, and staff from the provided catalog. Never invent IDs, prices, addresses, or user records.",
     "Keep answers short, warm, and practical. Write in Russian unless the user clearly uses another language.",
+    "Return only JSON with fields: intent, reply, bookingDraft, suggestions.",
+    "bookingDraft must be null until the user has provided salon/service/time/date/clientName/clientPhone or clearly accepts a suggested option.",
+    "If bookingDraft is present, use this shape: { salonId, serviceId, staffId, clientName, clientPhone, date, time, notes }. Use staffId null when the user asks for any available master.",
     `Current date: ${context.currentDate}. Timezone: ${context.timezone}.`,
     `Telegram authenticated current user: ${context.isTelegramAuthenticated ? "yes" : "no"}.`,
     "Public catalog:",
@@ -230,6 +238,33 @@ export function buildAssistantSystemPrompt(context: AssistantContext) {
     JSON.stringify(context.ownBookings),
     "Return only JSON that matches the response schema.",
   ].join("\n");
+}
+
+export function buildOpenRouterRequestBody({
+  context,
+  history,
+  message,
+  model,
+}: {
+  context: AssistantContext;
+  history: AssistantHistoryMessage[];
+  message: string;
+  model: string;
+}) {
+  return {
+    model,
+    temperature: 0.2,
+    max_tokens: 800,
+    messages: [
+      { role: "system", content: buildAssistantSystemPrompt(context) },
+      ...history.slice(-6).map((item) => ({
+        role: item.role,
+        content: item.content.slice(0, 1000),
+      })),
+      { role: "user", content: message },
+    ],
+    response_format: { type: "json_object" as const },
+  };
 }
 
 export function getAssistantResponseJsonSchema() {

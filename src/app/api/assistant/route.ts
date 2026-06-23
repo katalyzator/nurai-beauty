@@ -3,10 +3,9 @@ import { z } from "zod";
 import { getTelegramSession } from "@/lib/auth/telegram-session";
 import {
   assistantBoundaryReply,
-  buildAssistantSystemPrompt,
+  buildOpenRouterRequestBody,
   classifyAssistantMessage,
   DEFAULT_OPENROUTER_MODEL,
-  getAssistantResponseJsonSchema,
   validateAssistantOutput,
 } from "@/lib/domain/assistant";
 import { getAssistantContext } from "@/lib/domain/assistant-data";
@@ -81,20 +80,14 @@ export async function POST(request: Request) {
         "HTTP-Referer": process.env.NEXT_PUBLIC_APP_URL ?? "https://nurai.beauty",
         "X-OpenRouter-Title": "nurAI",
       },
-      body: JSON.stringify({
-        model,
-        temperature: 0.2,
-        max_tokens: 800,
-        messages: [
-          { role: "system", content: buildAssistantSystemPrompt(context) },
-          ...sanitizeHistory(input.data.history ?? []),
-          { role: "user", content: input.data.message },
-        ],
-        response_format: {
-          type: "json_schema",
-          json_schema: getAssistantResponseJsonSchema(),
-        },
-      }),
+      body: JSON.stringify(
+        buildOpenRouterRequestBody({
+          context,
+          history: input.data.history ?? [],
+          message: input.data.message,
+          model,
+        }),
+      ),
     });
 
     if (!response.ok) {
@@ -124,13 +117,4 @@ export async function POST(request: Request) {
       { status: 502 },
     );
   }
-}
-
-function sanitizeHistory(
-  history: Array<{ role: "user" | "assistant"; content: string }>,
-) {
-  return history.slice(-6).map((message) => ({
-    role: message.role,
-    content: message.content.slice(0, 1000),
-  }));
 }
