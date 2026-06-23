@@ -48,10 +48,7 @@ html {
 
 body {
   min-height: 100vh;
-  background:
-    radial-gradient(circle at 14% 0%, rgba(244, 176, 192, 0.34), transparent 30rem),
-    radial-gradient(circle at 88% 6%, rgba(238, 248, 252, 0.9), transparent 26rem),
-    linear-gradient(180deg, #f3fbff 0%, #fffafd 42%, #f7fcff 100%);
+  background: linear-gradient(180deg, #f7fcff 0%, #fff9fb 48%, #ffffff 100%);
   color: var(--foreground);
   font-family: var(--font-inter), sans-serif;
   letter-spacing: 0;
@@ -104,10 +101,8 @@ textarea:focus-visible {
   z-index: -1;
   pointer-events: none;
   content: "";
-  opacity: 0.65;
-  background:
-    linear-gradient(90deg, transparent, rgba(255, 226, 234, 0.42), transparent),
-    linear-gradient(180deg, rgba(238, 248, 252, 0.65), transparent 44%);
+  opacity: 0.42;
+  background: linear-gradient(180deg, rgba(255, 226, 234, 0.34), transparent 34%);
   mask-image: linear-gradient(to bottom, black, transparent 72%);
 }
 
