@@ -107,7 +107,7 @@ const assistantRawDraftSchema = z.object({
 const assistantRawOutputSchema = z.object({
   intent: z.string().trim().min(1).max(48),
   reply: z.string().trim().min(1).max(1200),
-  bookingDraft: assistantRawDraftSchema.nullable(),
+  bookingDraft: z.unknown().nullable().optional(),
   suggestions: z.array(z.string().trim().min(1).max(90)).max(3).default([]),
 });
 
@@ -361,9 +361,7 @@ export function validateAssistantOutput(
   return {
     intent,
     reply: parsedOutput.data.reply,
-    bookingDraft: parsedOutput.data.bookingDraft
-      ? validateBookingDraft(parsedOutput.data.bookingDraft, context)
-      : null,
+    bookingDraft: validateBookingDraft(parsedOutput.data.bookingDraft, context),
     suggestions: parsedOutput.data.suggestions,
   };
 }
@@ -404,9 +402,13 @@ function normalizeAssistantIntent(intent: string): AssistantIntent {
 }
 
 function validateBookingDraft(
-  draft: z.infer<typeof assistantRawDraftSchema>,
+  rawDraft: unknown,
   context: AssistantContext,
 ): AssistantBookingDraft | null {
+  const parsedDraft = assistantRawDraftSchema.safeParse(rawDraft);
+  if (!parsedDraft.success) return null;
+
+  const draft = parsedDraft.data;
   if (!/^[+\d\s().-]{7,32}$/.test(draft.clientPhone)) return null;
 
   const salon = context.salons.find((item) => item.id === draft.salonId);

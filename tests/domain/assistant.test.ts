@@ -173,4 +173,28 @@ describe("nurAI assistant guardrails", () => {
 
     expect(output.bookingDraft).toBeNull();
   });
+
+  it("keeps the assistant reply when the model draft has an invalid shape", () => {
+    const output = validateAssistantOutput(
+      JSON.stringify({
+        intent: "book",
+        reply: "Почти готово, уточните телефон в формате +996...",
+        bookingDraft: {
+          salonId: "Erkindik Nails",
+          serviceId: "Маникюр",
+          staffId: "Сезим",
+          clientName: "Тест",
+          clientPhone: "700",
+          date: "today",
+          time: "morning",
+        },
+        suggestions: ["Указать телефон"],
+      }),
+      context,
+    );
+
+    expect(output.intent).toBe("book");
+    expect(output.reply).toContain("Почти готово");
+    expect(output.bookingDraft).toBeNull();
+  });
 });
