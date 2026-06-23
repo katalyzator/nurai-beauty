@@ -105,7 +105,7 @@ const assistantRawDraftSchema = z.object({
 });
 
 const assistantRawOutputSchema = z.object({
-  intent: assistantIntentSchema,
+  intent: z.string().trim().min(1).max(48),
   reply: z.string().trim().min(1).max(1200),
   bookingDraft: assistantRawDraftSchema.nullable(),
   suggestions: z.array(z.string().trim().min(1).max(90)).max(3).default([]),
@@ -348,14 +348,59 @@ export function validateAssistantOutput(
     };
   }
 
+  const intent = normalizeAssistantIntent(parsedOutput.data.intent);
+  if (intent === "boundary" && parsedOutput.data.intent !== "boundary") {
+    return {
+      intent: "boundary",
+      reply: assistantBoundaryReply(),
+      bookingDraft: null,
+      suggestions: ["Подобрать салон", "Показать ближайшее время"],
+    };
+  }
+
   return {
-    intent: parsedOutput.data.intent,
+    intent,
     reply: parsedOutput.data.reply,
     bookingDraft: parsedOutput.data.bookingDraft
       ? validateBookingDraft(parsedOutput.data.bookingDraft, context)
       : null,
     suggestions: parsedOutput.data.suggestions,
   };
+}
+
+function normalizeAssistantIntent(intent: string): AssistantIntent {
+  const normalized = intent.toLowerCase().trim();
+
+  if (
+    [
+      "book",
+      "booking",
+      "booking_start",
+      "create_booking",
+      "appointment",
+      "schedule",
+    ].includes(normalized)
+  ) {
+    return "book";
+  }
+
+  if (
+    ["browse", "search", "salon_search", "recommendation"].includes(normalized)
+  ) {
+    return "browse";
+  }
+
+  if (["own_bookings", "my_bookings", "bookings"].includes(normalized)) {
+    return "own_bookings";
+  }
+
+  if (["platform_help", "help", "merchant_help"].includes(normalized)) {
+    return "platform_help";
+  }
+
+  return assistantIntentSchema.safeParse(normalized).success
+    ? (normalized as AssistantIntent)
+    : "boundary";
 }
 
 function validateBookingDraft(

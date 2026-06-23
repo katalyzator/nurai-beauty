@@ -132,6 +132,26 @@ describe("nurAI assistant guardrails", () => {
     });
   });
 
+  it("normalizes safe model intent aliases instead of dropping the answer", () => {
+    const output = validateAssistantOutput(
+      [
+        "```json",
+        JSON.stringify({
+          intent: "booking_start",
+          reply: "Могу помочь с записью. Выберите время и оставьте телефон.",
+          bookingDraft: null,
+          suggestions: ["Записать на 11:00"],
+        }),
+        "```",
+      ].join("\n"),
+      context,
+    );
+
+    expect(output.intent).toBe("book");
+    expect(output.reply).toContain("Могу помочь");
+    expect(output.bookingDraft).toBeNull();
+  });
+
   it("drops booking drafts that reference unknown salons or services", () => {
     const output = validateAssistantOutput(
       JSON.stringify({
