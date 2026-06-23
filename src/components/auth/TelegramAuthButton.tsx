@@ -2,6 +2,7 @@
 
 import { LoaderCircle, Send } from "lucide-react";
 import { useTelegramAuth } from "@/components/auth/useTelegramAuth";
+import { buildTelegramBotHref } from "@/lib/domain/telegram-links";
 
 export function TelegramAuthButton({
   botUsername,
@@ -11,9 +12,7 @@ export function TelegramAuthButton({
   compact?: boolean;
 }) {
   const { authenticated, loading, user } = useTelegramAuth();
-  const telegramHref = botUsername
-    ? `https://t.me/${botUsername.replace(/^@/, "")}?startapp=booking`
-    : null;
+  const telegramHref = buildTelegramBotHref(botUsername);
 
   if (authenticated && user) {
     return (
