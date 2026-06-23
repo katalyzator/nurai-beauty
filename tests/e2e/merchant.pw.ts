@@ -10,3 +10,14 @@ test("merchant cabinet asks unauthenticated users to open Telegram", async ({
   ).toBeVisible();
   await expect(page.getByRole("link", { name: /открыть в telegram/i })).toBeVisible();
 });
+
+test("merchant invite asks unauthenticated users to open Telegram", async ({
+  page,
+}) => {
+  await page.goto("/merchant/invite/test-token");
+
+  await expect(
+    page.getByRole("heading", { name: /войдите через telegram/i }),
+  ).toBeVisible();
+  await expect(page.getByRole("link", { name: /открыть в telegram/i })).toBeVisible();
+});

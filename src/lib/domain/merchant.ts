@@ -76,6 +76,144 @@ function createSlugBase(value: string) {
   return slug || "salon";
 }
 
+const merchantServiceInputSchema = z.object({
+  category: z.string().trim().max(80).optional(),
+  durationMinutes: z.coerce.number().int().min(10).max(600),
+  isActive: z.preprocess(normalizeBooleanish, z.boolean()).default(true),
+  name: z.string().trim().min(2).max(120),
+  priceKgs: z.coerce.number().int().min(0).max(1_000_000),
+});
+
+export type MerchantServiceInput = z.input<typeof merchantServiceInputSchema>;
+
+export type NormalizedMerchantServiceInput = z.output<
+  typeof merchantServiceInputSchema
+>;
+
+export function normalizeMerchantServiceInput(
+  input: MerchantServiceInput,
+): NormalizedMerchantServiceInput {
+  const parsed = merchantServiceInputSchema.parse(input);
+  const category = parsed.category || inferServiceCategory(parsed.name);
+
+  return {
+    ...parsed,
+    category,
+  };
+}
+
+const merchantStaffInputSchema = z.object({
+  fullName: z.string().trim().min(2).max(120),
+  isActive: z.preprocess(normalizeBooleanish, z.boolean()).default(true),
+  roleTitle: z.string().trim().max(80).optional(),
+  specialties: z
+    .union([z.string(), z.array(z.string())])
+    .optional()
+    .transform((value) => normalizeSpecialties(value)),
+});
+
+export type MerchantStaffInput = z.input<typeof merchantStaffInputSchema>;
+
+export type NormalizedMerchantStaffInput = z.output<
+  typeof merchantStaffInputSchema
+> & {
+  roleTitle: string;
+};
+
+export function normalizeMerchantStaffInput(
+  input: MerchantStaffInput,
+): NormalizedMerchantStaffInput {
+  const parsed = merchantStaffInputSchema.parse(input);
+
+  return {
+    ...parsed,
+    roleTitle: parsed.roleTitle || "Мастер",
+  };
+}
+
+const merchantInvitationInputSchema = z.object({
+  inviteeName: z.preprocess(
+    emptyStringToUndefined,
+    z.string().trim().min(2).max(120).optional(),
+  ),
+  phone: z.string().trim().max(32).optional(),
+  role: z.enum(["admin", "manager", "staff"]).default("staff"),
+  telegramUsername: z.string().trim().max(80).optional(),
+});
+
+export type MerchantInvitationInput = z.input<
+  typeof merchantInvitationInputSchema
+>;
+
+export type NormalizedMerchantInvitationInput = z.output<
+  typeof merchantInvitationInputSchema
+> & {
+  telegramUsername?: string;
+};
+
+export function normalizeMerchantInvitationInput(
+  input: MerchantInvitationInput,
+): NormalizedMerchantInvitationInput {
+  const parsed = merchantInvitationInputSchema.parse(input);
+  const phone = parsed.phone || undefined;
+  const telegramUsername = parsed.telegramUsername
+    ? parsed.telegramUsername.replace(/^@+/, "")
+    : undefined;
+
+  if (!phone && !telegramUsername) {
+    throw new Error("Invite requires phone or Telegram username");
+  }
+
+  return {
+    inviteeName: parsed.inviteeName || undefined,
+    phone,
+    role: parsed.role,
+    telegramUsername: telegramUsername || undefined,
+  };
+}
+
+const timeInputSchema = z
+  .string()
+  .trim()
+  .regex(/^([01]\d|2[0-3]):[0-5]\d$/);
+
+const merchantWorkingHoursInputSchema = z.object({
+  endsAt: timeInputSchema,
+  isActive: z.preprocess(normalizeBooleanish, z.boolean()).default(true),
+  startsAt: timeInputSchema,
+  weekday: z.coerce.number().int().min(0).max(6),
+});
+
+export type MerchantWorkingHoursInput = z.input<
+  typeof merchantWorkingHoursInputSchema
+>;
+
+export type NormalizedMerchantWorkingHoursInput = z.output<
+  typeof merchantWorkingHoursInputSchema
+>;
+
+export function normalizeMerchantWorkingHoursInput(
+  input: MerchantWorkingHoursInput,
+): NormalizedMerchantWorkingHoursInput {
+  const parsed = merchantWorkingHoursInputSchema.parse(input);
+  if (parsed.endsAt <= parsed.startsAt) {
+    throw new Error("Working hours end time must be after start time");
+  }
+
+  return parsed;
+}
+
+export function canManageMerchantCatalog(role: MerchantMemberRole) {
+  return role === "owner" || role === "admin";
+}
+
+export function buildMerchantInviteLink(token: string, appUrl?: string | null) {
+  const safeToken = encodeURIComponent(token);
+  if (!appUrl) return `/merchant/invite/${safeToken}`;
+
+  return `${appUrl.replace(/\/+$/, "")}/merchant/invite/${safeToken}`;
+}
+
 export type MerchantSalon = {
   id: string;
   name: string;
@@ -124,13 +262,38 @@ export type MerchantStaff = {
 
 export type MerchantMemberRole = "owner" | "admin" | "manager" | "staff";
 
+export type MerchantWorkingHour = {
+  id: string;
+  staffId: string;
+  weekday: number;
+  startsAt: string;
+  endsAt: string;
+  isActive: boolean;
+};
+
+export type MerchantInvitation = {
+  id: string;
+  salonId: string;
+  role: Exclude<MerchantMemberRole, "owner">;
+  inviteeName: string | null;
+  phone: string | null;
+  telegramUsername: string | null;
+  token: string;
+  inviteLink: string;
+  expiresAt: string;
+  acceptedAt: string | null;
+  createdAt: string;
+};
+
 export type MerchantDashboard = {
   authenticated: boolean;
   bookings: MerchantBooking[];
+  invitations: MerchantInvitation[];
   salons: MerchantSalon[];
   services: MerchantService[];
   session: TelegramSession | null;
   staff: MerchantStaff[];
+  workingHours: MerchantWorkingHour[];
 };
 
 type BookingRow = {
@@ -183,6 +346,28 @@ type StaffRow = {
   specialties: string[] | null;
 };
 
+type WorkingHourRow = {
+  id: string;
+  ends_at: string;
+  is_active: boolean;
+  staff_id: string;
+  starts_at: string;
+  weekday: number;
+};
+
+type InvitationRow = {
+  id: string;
+  accepted_at: string | null;
+  created_at: string;
+  expires_at: string;
+  invitee_name: string | null;
+  phone: string | null;
+  role: Exclude<MerchantMemberRole, "owner">;
+  salon_id: string;
+  telegram_username: string | null;
+  token: string;
+};
+
 export async function getMerchantDashboard(
   session?: TelegramSession | null,
 ): Promise<MerchantDashboard> {
@@ -210,6 +395,9 @@ export async function getMerchantDashboard(
   const roleBySalonId = new Map(
     memberRows.map((membership) => [membership.salon_id, membership.role]),
   );
+  const catalogSalonIds = memberRows
+    .filter((membership) => canManageMerchantCatalog(membership.role))
+    .map((membership) => membership.salon_id);
   const { data: salons, error: salonsError } = await supabase
     .from("salons")
     .select("id,name,slug,status,address,phone,instagram_url")
@@ -235,6 +423,30 @@ export async function getMerchantDashboard(
   if (servicesError) throw new Error(servicesError.message);
   if (staffError) throw new Error(staffError.message);
 
+  const staffRows = (staff ?? []) as StaffRow[];
+  const staffIds = staffRows.map((member) => member.id);
+  const [{ data: workingHours, error: workingHoursError }, invitationResult] =
+    await Promise.all([
+      staffIds.length > 0
+        ? supabase
+            .from("staff_working_hours")
+            .select("id,staff_id,weekday,starts_at,ends_at,is_active")
+            .in("staff_id", staffIds)
+            .order("weekday", { ascending: true })
+        : Promise.resolve({ data: [], error: null }),
+      catalogSalonIds.length > 0
+        ? supabase
+            .from("merchant_invitations")
+            .select(
+              "id,salon_id,role,invitee_name,phone,telegram_username,token,expires_at,accepted_at,created_at",
+            )
+            .in("salon_id", catalogSalonIds)
+            .order("created_at", { ascending: false })
+        : Promise.resolve({ data: [], error: null }),
+    ]);
+  if (workingHoursError) throw new Error(workingHoursError.message);
+  if (invitationResult.error) throw new Error(invitationResult.error.message);
+
   const { data: bookings, error: bookingsError } = await supabase
     .from("bookings")
     .select(
@@ -245,11 +457,26 @@ export async function getMerchantDashboard(
   if (bookingsError) throw new Error(bookingsError.message);
 
   const serviceRows = (services ?? []) as ServiceRow[];
-  const staffRows = (staff ?? []) as StaffRow[];
+  const appUrl = process.env.NEXT_PUBLIC_APP_URL ?? "https://nurai.beauty";
 
   return {
     authenticated: true,
     session: resolvedSession,
+    invitations: ((invitationResult.data ?? []) as InvitationRow[]).map(
+      (invitation) => ({
+        acceptedAt: invitation.accepted_at,
+        createdAt: invitation.created_at,
+        expiresAt: invitation.expires_at,
+        id: invitation.id,
+        inviteLink: buildMerchantInviteLink(invitation.token, appUrl),
+        inviteeName: invitation.invitee_name,
+        phone: invitation.phone,
+        role: invitation.role,
+        salonId: invitation.salon_id,
+        telegramUsername: invitation.telegram_username,
+        token: invitation.token,
+      }),
+    ),
     salons: ((salons ?? []) as SalonRow[]).map((salon) => ({
       address: salon.address,
       id: salon.id,
@@ -280,6 +507,14 @@ export async function getMerchantDashboard(
       roleTitle: member.role_title,
       salonId: member.salon_id,
       specialties: member.specialties ?? [],
+    })),
+    workingHours: ((workingHours ?? []) as WorkingHourRow[]).map((hours) => ({
+      endsAt: hours.ends_at.slice(0, 5),
+      id: hours.id,
+      isActive: hours.is_active,
+      staffId: hours.staff_id,
+      startsAt: hours.starts_at.slice(0, 5),
+      weekday: hours.weekday,
     })),
     bookings: ((bookings ?? []) as BookingRow[]).map((booking) => {
       const salon = Array.isArray(booking.salons)
@@ -442,21 +677,491 @@ export async function updateMerchantBookingStatus({
   return { id: data.id, status: data.status as Booking["status"] };
 }
 
+export async function createMerchantService({
+  input,
+  salonId,
+  telegramUserId,
+}: {
+  input: MerchantServiceInput;
+  salonId: string;
+  telegramUserId: number;
+}) {
+  const normalized = normalizeMerchantServiceInput(input);
+  const supabase = createAdminClient();
+  await requireMerchantCatalogAccess(supabase, salonId, telegramUserId);
+
+  const { data: service, error: serviceError } = await supabase
+    .from("services")
+    .insert({
+      category: normalized.category,
+      description: null,
+      duration_minutes: normalized.durationMinutes,
+      is_active: normalized.isActive,
+      name: normalized.name,
+      price_kgs: normalized.priceKgs,
+      salon_id: salonId,
+    })
+    .select("id,salon_id,category,name,duration_minutes,price_kgs,is_active")
+    .single();
+  if (serviceError) throw new Error(serviceError.message);
+
+  const { data: activeStaff, error: staffError } = await supabase
+    .from("salon_staff")
+    .select("id")
+    .eq("salon_id", salonId)
+    .eq("is_active", true);
+  if (staffError) throw new Error(staffError.message);
+
+  const staffServiceRows = (activeStaff ?? []).map((staffMember) => ({
+    service_id: service.id,
+    staff_id: staffMember.id,
+  }));
+  if (staffServiceRows.length > 0) {
+    const { error: staffServiceError } = await supabase
+      .from("staff_services")
+      .insert(staffServiceRows);
+    if (staffServiceError) throw new Error(staffServiceError.message);
+  }
+
+  return mapMerchantService(service as ServiceRow);
+}
+
+export async function toggleMerchantService({
+  isActive,
+  serviceId,
+  telegramUserId,
+}: {
+  isActive: boolean;
+  serviceId: string;
+  telegramUserId: number;
+}) {
+  const supabase = createAdminClient();
+  const salonId = await getServiceSalonId(supabase, serviceId);
+  await requireMerchantCatalogAccess(supabase, salonId, telegramUserId);
+
+  const { data, error } = await supabase
+    .from("services")
+    .update({ is_active: isActive })
+    .eq("id", serviceId)
+    .select("id,salon_id,category,name,duration_minutes,price_kgs,is_active")
+    .single();
+  if (error) throw new Error(error.message);
+
+  return mapMerchantService(data as ServiceRow);
+}
+
+export async function createMerchantStaff({
+  input,
+  salonId,
+  telegramUserId,
+}: {
+  input: MerchantStaffInput;
+  salonId: string;
+  telegramUserId: number;
+}) {
+  const normalized = normalizeMerchantStaffInput(input);
+  const supabase = createAdminClient();
+  await requireMerchantCatalogAccess(supabase, salonId, telegramUserId);
+
+  const { data: activeServices, error: servicesError } = await supabase
+    .from("services")
+    .select("id,name")
+    .eq("salon_id", salonId)
+    .eq("is_active", true)
+    .order("name", { ascending: true });
+  if (servicesError) throw new Error(servicesError.message);
+
+  const specialties =
+    normalized.specialties.length > 0
+      ? normalized.specialties
+      : (activeServices ?? []).map((service) => service.name).slice(0, 4);
+
+  const { data: staffMember, error: staffError } = await supabase
+    .from("salon_staff")
+    .insert({
+      bio: null,
+      full_name: normalized.fullName,
+      is_active: normalized.isActive,
+      role_title: normalized.roleTitle,
+      salon_id: salonId,
+      specialties,
+    })
+    .select("id,salon_id,full_name,role_title,is_active,specialties")
+    .single();
+  if (staffError) throw new Error(staffError.message);
+
+  const staffServiceRows = (activeServices ?? []).map((service) => ({
+    service_id: service.id,
+    staff_id: staffMember.id,
+  }));
+  if (staffServiceRows.length > 0) {
+    const { error: staffServiceError } = await supabase
+      .from("staff_services")
+      .insert(staffServiceRows);
+    if (staffServiceError) throw new Error(staffServiceError.message);
+  }
+
+  const { error: hoursError } = await supabase.from("staff_working_hours").insert(
+    [1, 2, 3, 4, 5, 6].map((weekday) => ({
+      ends_at: "20:00",
+      is_active: true,
+      staff_id: staffMember.id,
+      starts_at: "10:00",
+      weekday,
+    })),
+  );
+  if (hoursError) throw new Error(hoursError.message);
+
+  return mapMerchantStaff(staffMember as StaffRow);
+}
+
+export async function toggleMerchantStaff({
+  isActive,
+  staffId,
+  telegramUserId,
+}: {
+  isActive: boolean;
+  staffId: string;
+  telegramUserId: number;
+}) {
+  const supabase = createAdminClient();
+  const salonId = await getStaffSalonId(supabase, staffId);
+  await requireMerchantCatalogAccess(supabase, salonId, telegramUserId);
+
+  const { data, error } = await supabase
+    .from("salon_staff")
+    .update({ is_active: isActive })
+    .eq("id", staffId)
+    .select("id,salon_id,full_name,role_title,is_active,specialties")
+    .single();
+  if (error) throw new Error(error.message);
+
+  return mapMerchantStaff(data as StaffRow);
+}
+
+export async function updateMerchantWorkingHours({
+  input,
+  staffId,
+  telegramUserId,
+}: {
+  input: MerchantWorkingHoursInput;
+  staffId: string;
+  telegramUserId: number;
+}) {
+  const normalized = normalizeMerchantWorkingHoursInput(input);
+  const supabase = createAdminClient();
+  const salonId = await getStaffSalonId(supabase, staffId);
+  await requireMerchantCatalogAccess(supabase, salonId, telegramUserId);
+
+  const { data, error } = await supabase
+    .from("staff_working_hours")
+    .upsert(
+      {
+        ends_at: normalized.endsAt,
+        is_active: normalized.isActive,
+        staff_id: staffId,
+        starts_at: normalized.startsAt,
+        weekday: normalized.weekday,
+      },
+      { onConflict: "staff_id,weekday" },
+    )
+    .select("id,staff_id,weekday,starts_at,ends_at,is_active")
+    .single();
+  if (error) throw new Error(error.message);
+
+  return mapMerchantWorkingHour(data as WorkingHourRow);
+}
+
+export async function createMerchantInvitation({
+  input,
+  salonId,
+  telegramUserId,
+}: {
+  input: MerchantInvitationInput;
+  salonId: string;
+  telegramUserId: number;
+}) {
+  const normalized = normalizeMerchantInvitationInput(input);
+  const supabase = createAdminClient();
+  await requireMerchantCatalogAccess(supabase, salonId, telegramUserId);
+
+  const { data, error } = await supabase
+    .from("merchant_invitations")
+    .insert({
+      created_by_telegram_user_id: telegramUserId,
+      invitee_name: normalized.inviteeName ?? null,
+      phone: normalized.phone ?? null,
+      role: normalized.role,
+      salon_id: salonId,
+      telegram_username: normalized.telegramUsername ?? null,
+    })
+    .select(
+      "id,salon_id,role,invitee_name,phone,telegram_username,token,expires_at,accepted_at,created_at",
+    )
+    .single();
+  if (error) throw new Error(error.message);
+
+  return mapMerchantInvitation(data as InvitationRow);
+}
+
+export async function acceptMerchantInvitation({
+  session,
+  token,
+}: {
+  session: TelegramSession;
+  token: string;
+}) {
+  const supabase = createAdminClient();
+  const { data: invitation, error: invitationError } = await supabase
+    .from("merchant_invitations")
+    .select(
+      "id,salon_id,role,expires_at,accepted_at,created_by_telegram_user_id",
+    )
+    .eq("token", token)
+    .maybeSingle();
+  if (invitationError) throw new Error(invitationError.message);
+  if (!invitation) throw new Error("Invitation was not found");
+  if (invitation.accepted_at) throw new Error("Invitation is already accepted");
+  if (new Date(invitation.expires_at).getTime() < Date.now()) {
+    throw new Error("Invitation has expired");
+  }
+
+  await upsertTelegramUserFromSession(supabase, session);
+
+  const { data: existingMembership, error: existingMembershipError } =
+    await supabase
+      .from("merchant_telegram_members")
+      .select("role")
+      .eq("salon_id", invitation.salon_id)
+      .eq("telegram_user_id", session.telegramUserId)
+      .maybeSingle();
+  if (existingMembershipError) throw new Error(existingMembershipError.message);
+
+  const nextRole = getHighestMerchantRole(
+    existingMembership?.role as MerchantMemberRole | undefined,
+    invitation.role as MerchantMemberRole,
+  );
+
+  const { error: memberError } = await supabase
+    .from("merchant_telegram_members")
+    .upsert(
+      {
+        invited_by_telegram_user_id:
+          invitation.created_by_telegram_user_id ?? null,
+        is_active: true,
+        role: nextRole,
+        salon_id: invitation.salon_id,
+        telegram_user_id: session.telegramUserId,
+        updated_at: new Date().toISOString(),
+      },
+      { onConflict: "salon_id,telegram_user_id" },
+    );
+  if (memberError) throw new Error(memberError.message);
+
+  const { error: acceptError } = await supabase
+    .from("merchant_invitations")
+    .update({ accepted_at: new Date().toISOString() })
+    .eq("id", invitation.id);
+  if (acceptError) throw new Error(acceptError.message);
+
+  const { data: salon, error: salonError } = await supabase
+    .from("salons")
+    .select("id,name,slug")
+    .eq("id", invitation.salon_id)
+    .single();
+  if (salonError) throw new Error(salonError.message);
+
+  return { salon };
+}
+
+function mapMerchantService(service: ServiceRow): MerchantService {
+  return {
+    category: service.category,
+    durationMinutes: service.duration_minutes,
+    id: service.id,
+    isActive: service.is_active,
+    name: service.name,
+    priceKgs: service.price_kgs,
+    salonId: service.salon_id,
+  };
+}
+
+function mapMerchantStaff(member: StaffRow): MerchantStaff {
+  return {
+    fullName: member.full_name,
+    id: member.id,
+    isActive: member.is_active,
+    roleTitle: member.role_title,
+    salonId: member.salon_id,
+    specialties: member.specialties ?? [],
+  };
+}
+
+function mapMerchantWorkingHour(hours: WorkingHourRow): MerchantWorkingHour {
+  return {
+    endsAt: hours.ends_at.slice(0, 5),
+    id: hours.id,
+    isActive: hours.is_active,
+    staffId: hours.staff_id,
+    startsAt: hours.starts_at.slice(0, 5),
+    weekday: hours.weekday,
+  };
+}
+
+function mapMerchantInvitation(invitation: InvitationRow): MerchantInvitation {
+  return {
+    acceptedAt: invitation.accepted_at,
+    createdAt: invitation.created_at,
+    expiresAt: invitation.expires_at,
+    id: invitation.id,
+    inviteLink: buildMerchantInviteLink(
+      invitation.token,
+      process.env.NEXT_PUBLIC_APP_URL ?? "https://nurai.beauty",
+    ),
+    inviteeName: invitation.invitee_name,
+    phone: invitation.phone,
+    role: invitation.role,
+    salonId: invitation.salon_id,
+    telegramUsername: invitation.telegram_username,
+    token: invitation.token,
+  };
+}
+
+async function requireMerchantCatalogAccess(
+  supabase: ReturnType<typeof createAdminClient>,
+  salonId: string,
+  telegramUserId: number,
+) {
+  const membership = await getMerchantMembershipForSalon(
+    supabase,
+    salonId,
+    telegramUserId,
+  );
+
+  if (!membership || !canManageMerchantCatalog(membership.role)) {
+    throw new Error("You do not have access to manage this salon catalog");
+  }
+
+  return membership;
+}
+
+async function getMerchantMembershipForSalon(
+  supabase: ReturnType<typeof createAdminClient>,
+  salonId: string,
+  telegramUserId: number,
+) {
+  const { data, error } = await supabase
+    .from("merchant_telegram_members")
+    .select("role")
+    .eq("salon_id", salonId)
+    .eq("telegram_user_id", telegramUserId)
+    .eq("is_active", true)
+    .maybeSingle();
+  if (error) throw new Error(error.message);
+  if (!data) return null;
+
+  return { role: data.role as MerchantMemberRole };
+}
+
+async function getServiceSalonId(
+  supabase: ReturnType<typeof createAdminClient>,
+  serviceId: string,
+) {
+  const { data, error } = await supabase
+    .from("services")
+    .select("salon_id")
+    .eq("id", serviceId)
+    .single();
+  if (error) throw new Error(error.message);
+
+  return data.salon_id as string;
+}
+
+async function getStaffSalonId(
+  supabase: ReturnType<typeof createAdminClient>,
+  staffId: string,
+) {
+  const { data, error } = await supabase
+    .from("salon_staff")
+    .select("salon_id")
+    .eq("id", staffId)
+    .single();
+  if (error) throw new Error(error.message);
+
+  return data.salon_id as string;
+}
+
+function getHighestMerchantRole(
+  existingRole: MerchantMemberRole | undefined,
+  invitedRole: MerchantMemberRole,
+) {
+  if (!existingRole) return invitedRole;
+
+  return merchantRoleRank[existingRole] >= merchantRoleRank[invitedRole]
+    ? existingRole
+    : invitedRole;
+}
+
+const merchantRoleRank: Record<MerchantMemberRole, number> = {
+  admin: 3,
+  manager: 2,
+  owner: 4,
+  staff: 1,
+};
+
 function emptyMerchantDashboard(
   session: TelegramSession | null,
 ): MerchantDashboard {
   return {
     authenticated: Boolean(session),
     bookings: [],
+    invitations: [],
     salons: [],
     services: [],
     session,
     staff: [],
+    workingHours: [],
   };
 }
 
 function canManageBookings(role: MerchantMemberRole) {
   return role === "owner" || role === "admin" || role === "manager";
+}
+
+function normalizeBooleanish(value: unknown) {
+  if (typeof value === "boolean") return value;
+  if (typeof value !== "string") return value;
+
+  const normalized = value.trim().toLowerCase();
+  if (["1", "on", "true", "yes"].includes(normalized)) return true;
+  if (["0", "false", "no", "off"].includes(normalized)) return false;
+
+  return value;
+}
+
+function emptyStringToUndefined(value: unknown) {
+  if (typeof value === "string" && value.trim() === "") return undefined;
+  return value;
+}
+
+function normalizeSpecialties(value: string | string[] | undefined) {
+  const rawValues = Array.isArray(value)
+    ? value
+    : typeof value === "string"
+      ? value.split(/[,\n]/)
+      : [];
+  const seen = new Set<string>();
+  const specialties: string[] = [];
+
+  for (const item of rawValues) {
+    const specialty = item.trim();
+    const key = specialty.toLowerCase();
+    if (!specialty || seen.has(key)) continue;
+    seen.add(key);
+    specialties.push(specialty);
+  }
+
+  return specialties;
 }
 
 async function upsertTelegramUserFromSession(

@@ -3,10 +3,11 @@ import { ArrowLeft, CalendarDays, Store } from "lucide-react";
 import { BrandLogo } from "@/components/brand/BrandLogo";
 import { MerchantAuthGate } from "@/components/merchant/MerchantAuthGate";
 import { MerchantBookingsTable } from "@/components/merchant/MerchantBookingsTable";
-import { MerchantCatalogPanel } from "@/components/merchant/MerchantCatalogPanel";
+import { MerchantInvitationPanel } from "@/components/merchant/MerchantInvitationPanel";
 import { MerchantOnboardingForm } from "@/components/merchant/MerchantOnboardingForm";
-import { MerchantOperationsPanel } from "@/components/merchant/MerchantOperationsPanel";
 import { MerchantSalonSummary } from "@/components/merchant/MerchantSalonSummary";
+import { MerchantServiceManager } from "@/components/merchant/MerchantServiceManager";
+import { MerchantStaffManager } from "@/components/merchant/MerchantStaffManager";
 import { getMerchantDashboard } from "@/lib/domain/merchant";
 
 export default async function MerchantPage() {
@@ -37,46 +38,54 @@ export default async function MerchantPage() {
           <MerchantOnboardingForm />
         ) : (
           <>
-        <section className="mt-6 rounded-[28px] border border-[var(--rose-line)] bg-white p-6 shadow-[var(--shadow-card)] sm:p-8">
-          <p className="flex items-center gap-2 text-xs font-extrabold uppercase tracking-[0.14em] text-[var(--rose-deep)]">
-            <Store aria-hidden className="h-4 w-4" />
-            Кабинет партнера
-          </p>
-          <div className="mt-6 grid gap-5 lg:grid-cols-[minmax(0,1fr)_320px] lg:items-end">
-            <div>
-              <h1 className="font-display text-5xl font-semibold leading-none sm:text-6xl">
-                Управление записями
-              </h1>
-              <p className="mt-4 max-w-2xl text-base leading-7 text-[var(--muted)]">
-                {dashboard.session?.firstName}, здесь входящие заявки, команда
-                и операционный статус салона без потерянных сообщений в
-                WhatsApp.
+            <section className="mt-6 rounded-[28px] border border-[var(--rose-line)] bg-white p-6 shadow-[var(--shadow-card)] sm:p-8">
+              <p className="flex items-center gap-2 text-xs font-extrabold uppercase tracking-[0.14em] text-[var(--rose-deep)]">
+                <Store aria-hidden className="h-4 w-4" />
+                Кабинет партнера
               </p>
-            </div>
-            <div className="rounded-[20px] border border-[var(--rose-line)] bg-[var(--porcelain)] p-4">
-              <p className="flex items-center gap-2 text-sm font-bold text-[var(--muted)]">
-                <CalendarDays aria-hidden className="h-4 w-4" />
-                Сегодня
-              </p>
-              <p className="mt-2 font-display text-5xl font-bold leading-none">
-                {dashboard.bookings.length}
-              </p>
-              <p className="mt-1 text-xs font-bold uppercase tracking-[0.14em] text-[var(--soft)]">
-                новых заявок
-              </p>
-            </div>
-          </div>
-        </section>
+              <div className="mt-6 grid gap-5 lg:grid-cols-[minmax(0,1fr)_320px] lg:items-end">
+                <div>
+                  <h1 className="font-display text-5xl font-semibold leading-none sm:text-6xl">
+                    Управление салоном
+                  </h1>
+                  <p className="mt-4 max-w-2xl text-base leading-7 text-[var(--muted)]">
+                    {dashboard.session?.firstName}, здесь заявки, услуги,
+                    мастера, графики и доступы команды. Всё привязано к
+                    Telegram-ролям салона.
+                  </p>
+                </div>
+                <div className="rounded-[20px] border border-[var(--rose-line)] bg-[var(--porcelain)] p-4">
+                  <p className="flex items-center gap-2 text-sm font-bold text-[var(--muted)]">
+                    <CalendarDays aria-hidden className="h-4 w-4" />
+                    В работе
+                  </p>
+                  <p className="mt-2 font-display text-5xl font-bold leading-none">
+                    {dashboard.bookings.length}
+                  </p>
+                  <p className="mt-1 text-xs font-bold uppercase tracking-[0.14em] text-[var(--soft)]">
+                    заявок клиентов
+                  </p>
+                </div>
+              </div>
+            </section>
 
-        <div className="mt-6 grid gap-5">
-          <MerchantOperationsPanel />
-          <MerchantSalonSummary salons={dashboard.salons} />
-          <MerchantCatalogPanel
-            services={dashboard.services}
-            staff={dashboard.staff}
-          />
-          <MerchantBookingsTable bookings={dashboard.bookings} />
-        </div>
+            <div className="mt-6 grid gap-5">
+              <MerchantSalonSummary salons={dashboard.salons} />
+              <MerchantServiceManager
+                salons={dashboard.salons}
+                services={dashboard.services}
+              />
+              <MerchantStaffManager
+                salons={dashboard.salons}
+                staff={dashboard.staff}
+                workingHours={dashboard.workingHours}
+              />
+              <MerchantInvitationPanel
+                invitations={dashboard.invitations}
+                salons={dashboard.salons}
+              />
+              <MerchantBookingsTable bookings={dashboard.bookings} />
+            </div>
           </>
         )}
       </div>
