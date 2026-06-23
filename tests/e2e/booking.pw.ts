@@ -24,13 +24,14 @@ test("salon profile exposes booking form", async ({ page }) => {
   await expect(page.getByRole("button", { name: /Любой свободный мастер/i })).toBeVisible();
 });
 
-test("salon profile creates a web booking", async ({ page }) => {
+test("salon profile creates a web booking", async ({ page }, testInfo) => {
   const phone = `+996700${Date.now().toString().slice(-6)}`;
+  const freeTimeOffset = testInfo.project.name === "mobile" ? 1 : 0;
 
   await page.goto("/salons/erkindik-nails");
   await page.getByRole("button", { name: /Сезим/ }).click();
   await expect(page.getByText("Мастер: Сезим")).toBeVisible();
-  const chosenTime = await chooseFirstFreeTime(page);
+  const chosenTime = await chooseFreeTime(page, freeTimeOffset);
   await page.getByLabel("Имя").fill("E2E Client");
   await page.getByLabel("Телефон").fill(phone);
   await page.getByRole("button", { name: "Записаться" }).click();
@@ -54,19 +55,23 @@ test("salon profile creates a web booking", async ({ page }) => {
   }
 });
 
-async function chooseFirstFreeTime(page: Page) {
+async function chooseFreeTime(page: Page, offset: number) {
   const buttons = page.getByTestId(/^booking-time-/);
   const count = await buttons.count();
+  const enabledButtons = [];
 
   for (let index = 0; index < count; index += 1) {
     const button = buttons.nth(index);
     if (await button.isEnabled()) {
-      const time = await button.getAttribute("data-booking-time");
-      if (!time) break;
-
-      await button.click();
-      return time;
+      enabledButtons.push(button);
     }
+  }
+
+  const button = enabledButtons[offset] ?? enabledButtons[0];
+  const time = await button?.getAttribute("data-booking-time");
+  if (button && time) {
+    await button.click();
+    return time;
   }
 
   throw new Error("No free booking time was available in the test salon");

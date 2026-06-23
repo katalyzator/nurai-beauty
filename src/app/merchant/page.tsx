@@ -1,7 +1,10 @@
 import Link from "next/link";
 import { ArrowLeft, CalendarDays, Store } from "lucide-react";
 import { BrandLogo } from "@/components/brand/BrandLogo";
+import { MerchantAuthGate } from "@/components/merchant/MerchantAuthGate";
 import { MerchantBookingsTable } from "@/components/merchant/MerchantBookingsTable";
+import { MerchantCatalogPanel } from "@/components/merchant/MerchantCatalogPanel";
+import { MerchantOnboardingForm } from "@/components/merchant/MerchantOnboardingForm";
 import { MerchantOperationsPanel } from "@/components/merchant/MerchantOperationsPanel";
 import { MerchantSalonSummary } from "@/components/merchant/MerchantSalonSummary";
 import { getMerchantDashboard } from "@/lib/domain/merchant";
@@ -28,6 +31,12 @@ export default async function MerchantPage() {
           </span>
         </header>
 
+        {!dashboard.authenticated ? (
+          <MerchantAuthGate botUsername={process.env.TELEGRAM_BOT_USERNAME} />
+        ) : dashboard.salons.length === 0 ? (
+          <MerchantOnboardingForm />
+        ) : (
+          <>
         <section className="mt-6 rounded-[28px] border border-[var(--rose-line)] bg-white p-6 shadow-[var(--shadow-card)] sm:p-8">
           <p className="flex items-center gap-2 text-xs font-extrabold uppercase tracking-[0.14em] text-[var(--rose-deep)]">
             <Store aria-hidden className="h-4 w-4" />
@@ -39,8 +48,9 @@ export default async function MerchantPage() {
                 Управление записями
               </h1>
               <p className="mt-4 max-w-2xl text-base leading-7 text-[var(--muted)]">
-                Салон видит входящие заявки, клиентов и расписание без
-                потерянных сообщений в WhatsApp.
+                {dashboard.session?.firstName}, здесь входящие заявки, команда
+                и операционный статус салона без потерянных сообщений в
+                WhatsApp.
               </p>
             </div>
             <div className="rounded-[20px] border border-[var(--rose-line)] bg-[var(--porcelain)] p-4">
@@ -61,8 +71,14 @@ export default async function MerchantPage() {
         <div className="mt-6 grid gap-5">
           <MerchantOperationsPanel />
           <MerchantSalonSummary salons={dashboard.salons} />
+          <MerchantCatalogPanel
+            services={dashboard.services}
+            staff={dashboard.staff}
+          />
           <MerchantBookingsTable bookings={dashboard.bookings} />
         </div>
+          </>
+        )}
       </div>
     </main>
   );

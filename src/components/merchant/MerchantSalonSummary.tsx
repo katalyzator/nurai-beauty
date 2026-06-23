@@ -1,4 +1,5 @@
-import { MapPin, ShieldCheck } from "lucide-react";
+import Link from "next/link";
+import { ArrowUpRight, MapPin, Scissors, ShieldCheck, UsersRound } from "lucide-react";
 import type { MerchantSalon } from "@/lib/domain/merchant";
 
 export function MerchantSalonSummary({ salons }: { salons: MerchantSalon[] }) {
@@ -23,7 +24,7 @@ export function MerchantSalonSummary({ salons }: { salons: MerchantSalon[] }) {
               <div>
                 <p className="flex items-center gap-2 text-xs font-extrabold uppercase tracking-[0.14em] text-[var(--rose-deep)]">
                   <ShieldCheck aria-hidden className="h-3.5 w-3.5" />
-                  {salon.status}
+                  {salon.role} · {salon.status}
                 </p>
                 <h2 className="mt-2 text-xl font-black tracking-[-0.03em] text-[var(--ink)]">
                   {salon.name}
@@ -32,10 +33,24 @@ export function MerchantSalonSummary({ salons }: { salons: MerchantSalon[] }) {
                   <MapPin aria-hidden className="h-4 w-4 text-[var(--rose)]" />
                   {salon.address}
                 </p>
+                <div className="mt-4 flex flex-wrap gap-2 text-xs font-black text-[var(--rose-deep)]">
+                  <span className="inline-flex items-center gap-1 rounded-full bg-[var(--blush-soft)] px-3 py-1">
+                    <Scissors aria-hidden className="h-3.5 w-3.5" />
+                    {salon.serviceCount} услуг
+                  </span>
+                  <span className="inline-flex items-center gap-1 rounded-full bg-[var(--brand-fog)] px-3 py-1 text-[var(--brand-plum)]">
+                    <UsersRound aria-hidden className="h-3.5 w-3.5" />
+                    {salon.staffCount} мастеров
+                  </span>
+                </div>
               </div>
-              <div className="rounded-full bg-[var(--brand-fog)] px-3 py-2 text-xs font-black uppercase tracking-[0.12em] text-[var(--brand-plum)]">
+              <Link
+                href={`/salons/${salon.slug}`}
+                className="inline-flex min-h-10 items-center justify-center gap-1 rounded-full bg-[var(--brand-fog)] px-3 text-xs font-black uppercase tracking-[0.12em] text-[var(--brand-plum)]"
+              >
                 Live
-              </div>
+                <ArrowUpRight aria-hidden className="h-3.5 w-3.5" />
+              </Link>
             </div>
           </article>
         ))

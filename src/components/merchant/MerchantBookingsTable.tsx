@@ -1,5 +1,9 @@
 import { Inbox, Phone } from "lucide-react";
-import type { MerchantBooking } from "@/lib/domain/merchant";
+import {
+  merchantBookingStatusLabels,
+  type MerchantBooking,
+} from "@/lib/domain/merchant";
+import { MerchantBookingActions } from "@/components/merchant/MerchantBookingActions";
 
 export function MerchantBookingsTable({
   bookings,
@@ -39,18 +43,36 @@ export function MerchantBookingsTable({
         {bookings.map((booking) => (
           <div
             key={booking.id}
-            className="grid gap-3 p-5 text-sm font-bold text-[var(--muted)] lg:grid-cols-[1.1fr_1fr_1fr_1.1fr_0.7fr]"
+            className="grid gap-3 p-5 text-sm font-bold text-[var(--muted)] xl:grid-cols-[1fr_1fr_1fr_1fr_0.7fr_1.2fr]"
           >
-            <span className="text-[var(--ink)]">{booking.salonName}</span>
-            <span>{booking.clientName}</span>
-            <span className="flex items-center gap-2">
-              <Phone aria-hidden className="h-4 w-4 text-[var(--rose)]" />
-              {booking.clientPhone}
+            <div>
+              <span className="block text-[var(--ink)]">{booking.salonName}</span>
+              <span className="mt-1 block text-xs">{booking.serviceName}</span>
+            </div>
+            <div>
+              <span className="block text-[var(--ink)]">{booking.clientName}</span>
+              <span className="mt-1 flex items-center gap-2">
+                <Phone aria-hidden className="h-4 w-4 text-[var(--rose)]" />
+                {booking.clientPhone}
+              </span>
+            </div>
+            <span>{booking.staffName ?? "Любой свободный мастер"}</span>
+            <span>
+              {new Date(booking.startAt).toLocaleString("ru-RU", {
+                day: "numeric",
+                hour: "2-digit",
+                minute: "2-digit",
+                month: "short",
+                timeZone: "Asia/Bishkek",
+              })}
             </span>
-            <span>{new Date(booking.startAt).toLocaleString("ru-RU")}</span>
-            <span className="rounded-full bg-[var(--blush-soft)] px-3 py-1 text-center text-xs font-extrabold uppercase tracking-[0.12em] text-[var(--rose-deep)]">
-              {booking.status}
+            <span className="h-fit rounded-full bg-[var(--blush-soft)] px-3 py-1 text-center text-xs font-extrabold uppercase tracking-[0.12em] text-[var(--rose-deep)]">
+              {merchantBookingStatusLabels[booking.status]}
             </span>
+            <MerchantBookingActions
+              bookingId={booking.id}
+              status={booking.status}
+            />
           </div>
         ))}
       </div>

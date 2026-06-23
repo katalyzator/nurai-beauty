@@ -90,6 +90,23 @@ textarea:focus-visible {
   font-family: var(--font-cormorant), Georgia, serif;
 }
 
+.merchant-input {
+  min-height: 48px;
+  width: 100%;
+  border-radius: 14px;
+  border: 1px solid var(--rose-line);
+  background: #fff;
+  padding: 0 16px;
+  color: var(--ink);
+  font-size: 14px;
+  font-weight: 800;
+  outline: none;
+}
+
+.merchant-input::placeholder {
+  color: var(--soft);
+}
+
 .beauty-shell {
   position: relative;
   overflow: hidden;
