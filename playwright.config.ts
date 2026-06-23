@@ -7,7 +7,7 @@ export default defineConfig({
   testDir: "./tests/e2e",
   testMatch: "*.pw.ts",
   webServer: {
-    command: `bun dev -p ${port}`,
+    command: `NURAI_ASSISTANT_MOCK=1 bun dev -p ${port}`,
     url: baseURL,
     reuseExistingServer: true,
     timeout: 120_000,

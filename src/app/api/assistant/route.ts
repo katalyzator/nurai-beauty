@@ -3,6 +3,7 @@ import { z } from "zod";
 import { getTelegramSession } from "@/lib/auth/telegram-session";
 import {
   assistantBoundaryReply,
+  buildLocalAssistantResponse,
   buildOpenRouterRequestBody,
   classifyAssistantMessage,
   DEFAULT_OPENROUTER_MODEL,
@@ -53,7 +54,25 @@ export async function POST(request: Request) {
   }
 
   const apiKey = process.env.OPENROUTER_API_KEY;
-  if (!apiKey) {
+  const useLocalAssistantMock =
+    process.env.NODE_ENV !== "production" &&
+    process.env.NURAI_ASSISTANT_MOCK === "1";
+
+  if (useLocalAssistantMock || !apiKey) {
+    if (process.env.NODE_ENV !== "production") {
+      const telegramSession = await getTelegramSession();
+      const context = await getAssistantContext({
+        telegramUserId: telegramSession?.telegramUserId ?? null,
+      });
+
+      return NextResponse.json(
+        buildLocalAssistantResponse({
+          context,
+          message: input.data.message,
+        }),
+      );
+    }
+
     return NextResponse.json(
       {
         intent: "boundary",

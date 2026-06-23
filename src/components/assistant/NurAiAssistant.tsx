@@ -5,10 +5,16 @@ import {
   Bot,
   CalendarCheck2,
   LoaderCircle,
+  MessageCircle,
+  Minus,
   Send,
   ShieldCheck,
 } from "lucide-react";
 import { useTelegramAuth } from "@/components/auth/useTelegramAuth";
+import {
+  formatAssistantMessage,
+  type AssistantTextPart,
+} from "@/lib/domain/assistant";
 import { buildBishkekSlotIso } from "@/lib/domain/booking-calendar";
 
 type ChatMessage = {
@@ -44,8 +50,15 @@ const quickPrompts = [
   "Какие у меня записи?",
 ];
 
-export function NurAiAssistant({ compact = false }: { compact?: boolean }) {
+export function NurAiAssistant({
+  compact = false,
+  floating = false,
+}: {
+  compact?: boolean;
+  floating?: boolean;
+}) {
   const { authenticated, loading: authLoading, user } = useTelegramAuth();
+  const [isOpen, setIsOpen] = useState(!floating);
   const [messages, setMessages] = useState<ChatMessage[]>([
     {
       role: "assistant",
@@ -149,11 +162,11 @@ export function NurAiAssistant({ compact = false }: { compact?: boolean }) {
     ]);
   }
 
-  return (
+  const panel = (
     <section
       className={`border border-[var(--rose-line)] bg-white shadow-[var(--shadow-subtle)] ${
-        compact ? "rounded-[20px] p-4" : "rounded-[24px] p-4 sm:p-5"
-      }`}
+        compact || floating ? "rounded-[20px] p-4" : "rounded-[24px] p-4 sm:p-5"
+      } ${floating ? "max-h-[calc(100vh-2rem)] overflow-y-auto" : ""}`}
       aria-label="nurAI Assistant"
     >
       <div className="flex items-start justify-between gap-4">
@@ -170,10 +183,22 @@ export function NurAiAssistant({ compact = false }: { compact?: boolean }) {
             </p>
           </div>
         </div>
-        <span className="inline-flex items-center gap-1 rounded-full bg-[var(--brand-fog)] px-3 py-1 text-xs font-extrabold text-[var(--brand-plum)]">
-          <ShieldCheck aria-hidden className="h-3.5 w-3.5" />
-          {authenticated ? user?.firstName ?? "Telegram" : "guarded"}
-        </span>
+        <div className="flex items-center gap-2">
+          <span className="inline-flex items-center gap-1 rounded-full bg-[var(--brand-fog)] px-3 py-1 text-xs font-extrabold text-[var(--brand-plum)]">
+            <ShieldCheck aria-hidden className="h-3.5 w-3.5" />
+            {authenticated ? user?.firstName ?? "Telegram" : "guarded"}
+          </span>
+          {floating ? (
+            <button
+              type="button"
+              aria-label="Свернуть nurAI Assistant"
+              onClick={() => setIsOpen(false)}
+              className="grid h-9 w-9 shrink-0 place-items-center rounded-full border border-[var(--rose-line)] bg-white text-[var(--brand-plum)] hover:bg-[var(--blush-soft)]"
+            >
+              <Minus aria-hidden className="h-4 w-4" />
+            </button>
+          ) : null}
+        </div>
       </div>
 
       <div className="mt-4 grid max-h-[310px] gap-3 overflow-y-auto pr-1">
@@ -186,7 +211,11 @@ export function NurAiAssistant({ compact = false }: { compact?: boolean }) {
                 : "justify-self-end bg-[var(--brand-plum)] text-white"
             }`}
           >
-            {message.content}
+            {message.role === "assistant" ? (
+              <AssistantMessageContent content={message.content} />
+            ) : (
+              message.content
+            )}
           </div>
         ))}
         {status === "thinking" ? (
@@ -268,5 +297,82 @@ export function NurAiAssistant({ compact = false }: { compact?: boolean }) {
         </button>
       </form>
     </section>
+  );
+
+  if (!floating) {
+    return panel;
+  }
+
+  return (
+    <div className="fixed bottom-4 right-4 z-50 sm:bottom-6 sm:right-6">
+      {isOpen ? (
+        <div className="w-[min(420px,calc(100vw-2rem))]">{panel}</div>
+      ) : (
+        <button
+          type="button"
+          aria-label="Открыть nurAI Assistant"
+          onClick={() => setIsOpen(true)}
+          className="inline-flex min-h-14 items-center gap-3 rounded-full bg-[var(--brand-plum)] px-4 text-sm font-black text-white shadow-[var(--shadow-cta)] hover:-translate-y-0.5"
+        >
+          <span className="grid h-9 w-9 place-items-center rounded-full bg-white/12">
+            <MessageCircle aria-hidden className="h-5 w-5" />
+          </span>
+          <span className="hidden sm:inline">AI запись</span>
+        </button>
+      )}
+    </div>
+  );
+}
+
+function AssistantMessageContent({ content }: { content: string }) {
+  const blocks = formatAssistantMessage(content);
+
+  return (
+    <div className="grid gap-2">
+      {blocks.map((block, index) => {
+        if (block.type === "list") {
+          const ListTag = block.ordered ? "ol" : "ul";
+
+          return (
+            <ListTag
+              key={`${block.type}-${index}`}
+              className={`grid gap-1.5 ${
+                block.ordered
+                  ? "list-decimal pl-5"
+                  : "list-disc pl-5 marker:text-[var(--rose-deep)]"
+              }`}
+            >
+              {block.items.map((item, itemIndex) => (
+                <li key={itemIndex}>
+                  <AssistantInline parts={item} />
+                </li>
+              ))}
+            </ListTag>
+          );
+        }
+
+        return (
+          <p key={`${block.type}-${index}`}>
+            <AssistantInline parts={block.parts} />
+          </p>
+        );
+      })}
+    </div>
+  );
+}
+
+function AssistantInline({ parts }: { parts: AssistantTextPart[] }) {
+  return (
+    <>
+      {parts.map((part, index) =>
+        part.strong ? (
+          <strong key={index} className="font-black text-[var(--brand-plum)]">
+            {part.text}
+          </strong>
+        ) : (
+          <span key={index}>{part.text}</span>
+        ),
+      )}
+    </>
   );
 }

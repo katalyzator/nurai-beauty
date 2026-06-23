@@ -78,6 +78,22 @@ export type AssistantHistoryMessage = {
   content: string;
 };
 
+export type AssistantTextPart = {
+  text: string;
+  strong: boolean;
+};
+
+export type AssistantMessageBlock =
+  | {
+      type: "paragraph";
+      parts: AssistantTextPart[];
+    }
+  | {
+      type: "list";
+      ordered: boolean;
+      items: AssistantTextPart[][];
+    };
+
 type AssistantBlockReason =
   | "prompt_injection"
   | "secrets"
@@ -363,6 +379,157 @@ export function validateAssistantOutput(
     reply: parsedOutput.data.reply,
     bookingDraft: validateBookingDraft(parsedOutput.data.bookingDraft, context),
     suggestions: parsedOutput.data.suggestions,
+  };
+}
+
+export function formatAssistantMessage(content: string): AssistantMessageBlock[] {
+  const lines = content.replace(/\r\n/g, "\n").split("\n");
+  const blocks: AssistantMessageBlock[] = [];
+  let paragraph: string[] = [];
+  let list:
+    | {
+        ordered: boolean;
+        items: AssistantTextPart[][];
+      }
+    | null = null;
+
+  function flushParagraph() {
+    if (paragraph.length === 0) return;
+    blocks.push({
+      type: "paragraph",
+      parts: formatAssistantInline(paragraph.join(" ").trim()),
+    });
+    paragraph = [];
+  }
+
+  function flushList() {
+    if (!list) return;
+    blocks.push({ type: "list", ordered: list.ordered, items: list.items });
+    list = null;
+  }
+
+  for (const rawLine of lines) {
+    const line = rawLine.trim();
+    if (!line) {
+      flushParagraph();
+      flushList();
+      continue;
+    }
+
+    const bulletMatch = line.match(/^(?:[•*-]|\d+[.)])\s+(.+)$/);
+    if (bulletMatch) {
+      flushParagraph();
+      const ordered = /^\d+[.)]/.test(line);
+      if (!list || list.ordered !== ordered) {
+        flushList();
+        list = { ordered, items: [] };
+      }
+      list.items.push(formatAssistantInline(bulletMatch[1]));
+      continue;
+    }
+
+    flushList();
+    paragraph.push(line);
+  }
+
+  flushParagraph();
+  flushList();
+
+  return blocks.length
+    ? blocks
+    : [{ type: "paragraph", parts: [{ text: content, strong: false }] }];
+}
+
+export function formatAssistantInline(text: string): AssistantTextPart[] {
+  const parts: AssistantTextPart[] = [];
+  const pattern = /\*\*([^*]+)\*\*/g;
+  let lastIndex = 0;
+  let match: RegExpExecArray | null;
+
+  while ((match = pattern.exec(text))) {
+    if (match.index > lastIndex) {
+      parts.push({ text: text.slice(lastIndex, match.index), strong: false });
+    }
+    parts.push({ text: match[1], strong: true });
+    lastIndex = match.index + match[0].length;
+  }
+
+  if (lastIndex < text.length) {
+    parts.push({ text: text.slice(lastIndex), strong: false });
+  }
+
+  return parts.length ? parts : [{ text, strong: false }];
+}
+
+export function buildLocalAssistantResponse({
+  context,
+  message,
+}: {
+  context: AssistantContext;
+  message: string;
+}): AssistantOutput {
+  const salon = context.salons[0];
+  const service = salon?.services[0];
+  const staff = salon?.staff[0] ?? null;
+  if (!salon || !service) {
+    return {
+      intent: "browse",
+      reply:
+        "Локальный режим nurAI Assistant включен. Сейчас в каталоге нет активных салонов, но сам чат работает.",
+      bookingDraft: null,
+      suggestions: ["Проверить Supabase", "Открыть карту"],
+    };
+  }
+
+  const time = message.match(/\b([01]\d|2[0-3]):([0-5]\d)\b/)?.[0] ?? null;
+  const phone =
+    message.match(/\+996[\d\s().-]{7,18}/)?.[0].trim() ??
+    message.match(/\b0\d{9}\b/)?.[0] ??
+    null;
+  const nameMatch = message.match(/(?:имя|меня зовут)\s+([A-Za-zА-Яа-яЁё-]{2,40})/i);
+  const clientName = nameMatch?.[1] ?? "";
+
+  const bookingDraft =
+    time && phone && clientName
+      ? {
+          salonId: salon.id,
+          salonSlug: salon.slug,
+          salonName: salon.name,
+          serviceId: service.id,
+          serviceName: service.name,
+          staffId: staff?.id ?? null,
+          staffName: staff?.fullName ?? null,
+          clientName,
+          clientPhone: phone,
+          date: context.currentDate,
+          time,
+        }
+      : null;
+
+  return {
+    intent: "book",
+    reply: bookingDraft
+      ? [
+          "Локальный режим: подготовил черновик записи.",
+          "",
+          `• **${salon.name}**`,
+          `• ${service.name} — ${service.priceKgs} сом`,
+          `• ${staff ? `Мастер: ${staff.fullName}` : "Любой свободный мастер"}`,
+          `• ${context.currentDate} в ${time}`,
+          "",
+          "Нажмите **«Подтвердить запись»**, чтобы проверить создание заявки через локальный UI.",
+        ].join("\n")
+      : [
+          "Локальный режим nurAI Assistant: OpenRouter key не нужен.",
+          "",
+          `Могу показать пример по **${salon.name}**: ${service.name}, ${service.priceKgs} сом.`,
+          "",
+          "Чтобы увидеть черновик записи, напишите: имя, телефон и время. Например: «Имя Тест, телефон +996 700 000 000, 11:00».",
+        ].join("\n"),
+    bookingDraft,
+    suggestions: bookingDraft
+      ? ["Подтвердить запись", "Изменить время", "Выбрать любого мастера"]
+      : ["Имя Тест, телефон +996 700 000 000, 11:00", "Показать ближайший салон"],
   };
 }
 

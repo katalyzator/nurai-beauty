@@ -54,8 +54,8 @@ export function SalonSearchShell({
           />
         </header>
 
-        <section className="grid gap-5 py-6 lg:grid-cols-[minmax(0,1fr)_440px] lg:items-start">
-          <div className="pt-2">
+        <section className="py-6">
+          <div className="max-w-3xl pt-2">
             <p className="inline-flex items-center gap-2 rounded-full border border-[var(--rose-line)] bg-white px-3 py-1.5 text-xs font-extrabold text-[var(--rose-deep)] shadow-[var(--shadow-subtle)]">
               <span className="h-2 w-2 rounded-full bg-[var(--rose)]" />
               Бишкек · запись без ожидания ответа
@@ -102,10 +102,6 @@ export function SalonSearchShell({
                 </button>
               ))}
             </div>
-          </div>
-
-          <div id="assistant">
-            <NurAiAssistant />
           </div>
         </section>
 
@@ -161,6 +157,9 @@ export function SalonSearchShell({
             <SalonMapPanel salons={salons} />
           </aside>
         </section>
+      </div>
+      <div id="assistant">
+        <NurAiAssistant floating />
       </div>
     </main>
   );
