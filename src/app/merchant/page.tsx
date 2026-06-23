@@ -2,6 +2,7 @@ import Link from "next/link";
 import { ArrowLeft, CalendarDays, Store } from "lucide-react";
 import { BrandLogo } from "@/components/brand/BrandLogo";
 import { MerchantBookingsTable } from "@/components/merchant/MerchantBookingsTable";
+import { MerchantOperationsPanel } from "@/components/merchant/MerchantOperationsPanel";
 import { MerchantSalonSummary } from "@/components/merchant/MerchantSalonSummary";
 import { getMerchantDashboard } from "@/lib/domain/merchant";
 
@@ -58,6 +59,7 @@ export default async function MerchantPage() {
         </section>
 
         <div className="mt-6 grid gap-5">
+          <MerchantOperationsPanel />
           <MerchantSalonSummary salons={dashboard.salons} />
           <MerchantBookingsTable bookings={dashboard.bookings} />
         </div>

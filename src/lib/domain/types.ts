@@ -31,6 +31,9 @@ export type StaffMember = {
   roleTitle: string;
   bio: string | null;
   avatarUrl: string | null;
+  specialties: string[];
+  rating: number;
+  reviewCount: number;
 };
 
 export type SalonDetail = SalonSummary & {

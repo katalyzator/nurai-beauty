@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import {
   AlertCircle,
   CalendarClock,
@@ -27,36 +27,74 @@ export function BookingForm({
   salon: SalonDetail;
   source?: "web" | "telegram";
 }) {
-  const { authenticated, loading: authLoading, user } = useTelegramAuth();
+  const {
+    authenticated,
+    isTelegramMiniApp,
+    loading: authLoading,
+    user,
+  } = useTelegramAuth();
   const [status, setStatus] = useState<"idle" | "saving" | "saved" | "error">(
     "idle",
   );
+  const [errorMessage, setErrorMessage] = useState("");
   const [clientName, setClientName] = useState("");
   const [clientPhone, setClientPhone] = useState("");
   const [selectedServiceId, setSelectedServiceId] = useState(
     salon.services[0]?.id ?? "",
   );
-  const [selectedStaffId, setSelectedStaffId] = useState(
-    salon.staff[0]?.id ?? "",
-  );
+  const [internalStaffId, setInternalStaffId] = useState("");
   const days = useMemo(() => createBookingDays(new Date(), 6), []);
   const [selectedDate, setSelectedDate] = useState(days[0]?.isoDate ?? "");
   const [selectedTime, setSelectedTime] = useState("12:30");
   const visual = getSalonVisual(salon);
+  const selectedStaffId = internalStaffId;
   const selectedService = salon.services.find(
     (service) => service.id === selectedServiceId,
   );
-  const bookingSource = authenticated ? "telegram" : source;
+  const selectedStaff = salon.staff.find(
+    (member) => member.id === selectedStaffId,
+  );
+  const bookingSource = authenticated || isTelegramMiniApp ? "telegram" : source;
   const telegramName = user
     ? [user.firstName, user.lastName].filter(Boolean).join(" ")
     : "";
   const effectiveClientName = clientName || telegramName;
 
+  function updateStaffId(staffId: string) {
+    setInternalStaffId(staffId);
+    window.dispatchEvent(
+      new CustomEvent("nurai:staff-selection", {
+        detail: { staffId: staffId || null },
+      }),
+    );
+  }
+
+  useEffect(() => {
+    function handleStaffSelection(event: Event) {
+      const customEvent = event as CustomEvent<{ staffId: string | null }>;
+      setInternalStaffId(customEvent.detail.staffId ?? "");
+    }
+
+    window.addEventListener("nurai:staff-selection", handleStaffSelection);
+    return () =>
+      window.removeEventListener("nurai:staff-selection", handleStaffSelection);
+  }, []);
+
   async function submit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
     if (!selectedServiceId || !selectedDate || !selectedTime) return;
+    if (bookingSource === "telegram" && !authenticated) {
+      setStatus("error");
+      setErrorMessage(
+        authLoading
+          ? "Telegram авторизация еще загружается. Подождите пару секунд и попробуйте снова."
+          : "Откройте запись внутри Telegram Mini App, чтобы подтвердить пользователя.",
+      );
+      return;
+    }
 
     setStatus("saving");
+    setErrorMessage("");
     const response = await fetch("/api/bookings", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -71,7 +109,17 @@ export function BookingForm({
       }),
     });
 
-    setStatus(response.ok ? "saved" : "error");
+    if (response.ok) {
+      setStatus("saved");
+      return;
+    }
+
+    const data = await response.json().catch(() => null);
+    setErrorMessage(
+      data?.error ??
+        "Не удалось создать запись. Проверьте данные и попробуйте снова.",
+    );
+    setStatus("error");
   }
 
   return (
@@ -112,9 +160,10 @@ export function BookingForm({
           <select
             name="staffId"
             value={selectedStaffId}
-            onChange={(event) => setSelectedStaffId(event.target.value)}
+            onChange={(event) => updateStaffId(event.target.value)}
             className="min-h-12 w-full rounded-[14px] border border-[var(--rose-line)] bg-white px-4 text-sm font-bold text-[var(--ink)] outline-none"
           >
+            <option value="">Любой свободный мастер</option>
             {salon.staff.map((member) => (
               <option key={member.id} value={member.id}>
                 {member.fullName}
@@ -207,11 +256,18 @@ export function BookingForm({
               {selectedTime} · {selectedService?.name ?? "Услуга"}
             </p>
             <p className="mt-1 text-xs font-semibold text-[var(--muted)]">
-              {authenticated
-                ? `Telegram: ${user?.firstName}`
-                : authLoading
-                  ? "Проверяем Telegram..."
-                  : "Можно войти через Telegram в Mini App"}
+              {selectedStaff
+                ? `Мастер: ${selectedStaff.fullName}`
+                : "Мастер: назначить любого свободного"}
+            </p>
+            <p className="mt-1 text-xs font-semibold text-[var(--muted)]">
+              {bookingSource === "telegram"
+                ? authenticated
+                  ? `Telegram: ${user?.firstName}`
+                  : authLoading
+                    ? "Проверяем Telegram..."
+                    : "Telegram не подтвержден"
+                : "Web запись"}
             </p>
           </div>
           <span className="rounded-full bg-[var(--blush)] px-3 py-1 text-xs font-extrabold text-[var(--rose-deep)]">
@@ -222,7 +278,11 @@ export function BookingForm({
 
       <button
         type="submit"
-        disabled={status === "saving" || !selectedServiceId}
+        disabled={
+          status === "saving" ||
+          !selectedServiceId ||
+          (bookingSource === "telegram" && authLoading)
+        }
         className="mt-5 inline-flex min-h-12 w-full items-center justify-center gap-2 rounded-full bg-[var(--brand-plum)] px-5 text-sm font-black text-white shadow-[var(--shadow-cta)] hover:-translate-y-0.5 disabled:cursor-not-allowed disabled:opacity-70"
       >
         {status === "saving" ? (
@@ -230,7 +290,11 @@ export function BookingForm({
         ) : (
           <Send aria-hidden className="h-4 w-4" />
         )}
-        {status === "saving" ? "Отправляем..." : "Записаться"}
+        {status === "saving"
+          ? "Отправляем..."
+          : bookingSource === "telegram" && authLoading
+            ? "Проверяем Telegram..."
+            : "Записаться"}
       </button>
 
       {status === "saved" && (
@@ -242,7 +306,8 @@ export function BookingForm({
       {status === "error" && (
         <StatusMessage tone="error">
           <AlertCircle aria-hidden className="h-4 w-4" />
-          Не удалось создать запись. Проверьте данные и попробуйте снова.
+          {errorMessage ||
+            "Не удалось создать запись. Проверьте данные и попробуйте снова."}
         </StatusMessage>
       )}
     </form>

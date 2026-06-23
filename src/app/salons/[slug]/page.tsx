@@ -7,13 +7,13 @@ import {
   Clock3,
   MapPin,
   Phone,
-  ShieldCheck,
   Sparkles,
   Star,
 } from "lucide-react";
 import { BrandLogo } from "@/components/brand/BrandLogo";
 import { TelegramAuthButton } from "@/components/auth/TelegramAuthButton";
 import { BookingForm } from "@/components/booking/BookingForm";
+import { StaffCatalog } from "@/components/salon/StaffCatalog";
 import { getSalonBySlug } from "@/lib/domain/salons";
 import {
   formatPriceTier,
@@ -100,11 +100,11 @@ export default async function SalonPage({
             </div>
 
             <ServicesPanel salon={salon} />
+            <StaffCatalog staff={salon.staff} />
           </div>
 
           <aside className="grid gap-4 lg:sticky lg:top-5 lg:self-start">
             <BookingForm salon={salon} />
-            <TeamPanel salon={salon} />
             <ContactsPanel salon={salon} />
           </aside>
         </section>
@@ -165,36 +165,6 @@ function ServicesPanel({
               </span>
             </div>
           </article>
-        ))}
-      </div>
-    </div>
-  );
-}
-
-function TeamPanel({
-  salon,
-}: {
-  salon: Awaited<ReturnType<typeof getSalonBySlug>> extends infer T
-    ? NonNullable<T>
-    : never;
-}) {
-  return (
-    <div className="rounded-[24px] border border-[var(--rose-line)] bg-white p-5 shadow-[var(--shadow-subtle)]">
-      <p className="flex items-center gap-2 text-xs font-extrabold uppercase tracking-[0.14em] text-[var(--rose-deep)]">
-        <ShieldCheck aria-hidden className="h-4 w-4" />
-        Команда
-      </p>
-      <div className="mt-4 grid gap-3">
-        {salon.staff.map((member) => (
-          <div
-            key={member.id}
-            className="rounded-[18px] border border-[var(--rose-line)] bg-[var(--porcelain)] p-4"
-          >
-            <p className="font-extrabold">{member.fullName}</p>
-            <p className="mt-1 text-sm font-semibold text-[var(--muted)]">
-              {member.roleTitle}
-            </p>
-          </div>
         ))}
       </div>
     </div>

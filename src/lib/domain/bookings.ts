@@ -1,6 +1,6 @@
 import { z } from "zod";
 import type { Booking, BookingInput } from "@/lib/domain/types";
-import { createServerClient } from "@/lib/supabase/server";
+import { createAdminClient } from "@/lib/supabase/admin";
 
 export const bookingInputSchema = z.object({
   salonId: z.string().uuid(),
@@ -25,15 +25,49 @@ export function calculateEndAt(
 
 export async function createBooking(input: BookingInput): Promise<Booking> {
   const parsed = bookingInputSchema.parse(input);
-  const supabase = await createServerClient();
+  if (parsed.source === "telegram" && !parsed.telegramUserId) {
+    throw new Error("Telegram authorization is required");
+  }
+
+  const supabase = createAdminClient();
 
   const { data: service, error: serviceError } = await supabase
     .from("services")
-    .select("duration_minutes")
+    .select("duration_minutes,salon_id,is_active")
     .eq("id", parsed.serviceId)
     .single();
 
   if (serviceError) throw new Error(serviceError.message);
+  if (
+    !service.is_active ||
+    service.salon_id !== parsed.salonId
+  ) {
+    throw new Error("Service is not available for this salon");
+  }
+
+  const { data: salon, error: salonError } = await supabase
+    .from("salons")
+    .select("status")
+    .eq("id", parsed.salonId)
+    .single();
+
+  if (salonError) throw new Error(salonError.message);
+  if (salon.status !== "active") {
+    throw new Error("Salon is not available for booking");
+  }
+
+  if (parsed.staffId) {
+    const { data: staff, error: staffError } = await supabase
+      .from("salon_staff")
+      .select("salon_id,is_active")
+      .eq("id", parsed.staffId)
+      .single();
+
+    if (staffError) throw new Error(staffError.message);
+    if (!staff.is_active || staff.salon_id !== parsed.salonId) {
+      throw new Error("Staff member is not available for this salon");
+    }
+  }
 
   const endAt = calculateEndAt(parsed.startAt, service.duration_minutes);
   const { data, error } = await supabase

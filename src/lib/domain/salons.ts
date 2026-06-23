@@ -84,9 +84,13 @@ export async function getSalonBySlug(slug: string): Promise<SalonDetail | null> 
       .eq("is_active", true),
     supabase
       .from("salon_staff")
-      .select("id,salon_id,full_name,role_title,bio,avatar_path")
+      .select(
+        "id,salon_id,full_name,role_title,bio,avatar_path,specialties,rating,review_count",
+      )
       .eq("salon_id", salon.id)
-      .eq("is_active", true),
+      .eq("is_active", true)
+      .order("sort_order", { ascending: true })
+      .order("full_name", { ascending: true }),
   ]);
 
   return {
@@ -122,6 +126,9 @@ export async function getSalonBySlug(slug: string): Promise<SalonDetail | null> 
       roleTitle: member.role_title,
       bio: member.bio,
       avatarUrl: member.avatar_path,
+      specialties: member.specialties ?? [],
+      rating: Number(member.rating),
+      reviewCount: member.review_count,
     })),
   };
 }
