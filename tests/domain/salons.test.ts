@@ -14,6 +14,7 @@ describe("mapNearbySalonRow", () => {
       review_count: 24,
       price_tier: 3,
       cover_image_path: null,
+      service_tags: ["Волосы", "Женская стрижка"],
       latitude: 42.8766,
       longitude: 74.6057,
       distance_meters: 1234.5,
@@ -22,5 +23,6 @@ describe("mapNearbySalonRow", () => {
     expect(result.reviewCount).toBe(24);
     expect(result.distanceMeters).toBe(1234.5);
     expect(result.longitude).toBe(74.6057);
+    expect(result.serviceTags).toEqual(["Волосы", "Женская стрижка"]);
   });
 });

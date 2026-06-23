@@ -12,6 +12,7 @@ type NearbySalonRow = {
   review_count: number;
   price_tier: number;
   cover_image_path: string | null;
+  service_tags: string[] | null;
   latitude: number;
   longitude: number;
   distance_meters: number | null;
@@ -29,6 +30,7 @@ export function mapNearbySalonRow(row: NearbySalonRow): SalonSummary {
     reviewCount: row.review_count,
     priceTier: row.price_tier,
     coverImageUrl: row.cover_image_path,
+    serviceTags: row.service_tags ?? [],
     latitude: row.latitude,
     longitude: row.longitude,
     distanceMeters: row.distance_meters,
@@ -47,7 +49,7 @@ export async function getNearbySalons(params: {
   const { data, error } = await supabase.rpc("nearby_salons", {
     lat,
     lng,
-    radius_meters: params.radiusMeters ?? 10000,
+    radius_meters: params.radiusMeters ?? 18000,
   });
 
   if (error) {
@@ -110,6 +112,11 @@ export async function getSalonBySlug(slug: string): Promise<SalonDetail | null> 
     latitude: 42.8766,
     longitude: 74.6057,
     distanceMeters: null,
+    serviceTags: [
+      ...new Set(
+        (services ?? []).flatMap((service) => [service.category, service.name]),
+      ),
+    ],
     services: (services ?? []).map((service) => ({
       id: service.id,
       salonId: service.salon_id,

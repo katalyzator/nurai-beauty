@@ -17,9 +17,11 @@ describe("domain types", () => {
       latitude: 42.8766,
       longitude: 74.6057,
       distanceMeters: 1200,
+      serviceTags: ["Волосы", "Окрашивание"],
     };
 
     expect(salon.distanceMeters).toBe(1200);
     expect(salon.latitude).toBe(42.8766);
+    expect(salon.serviceTags).toContain("Окрашивание");
   });
 });

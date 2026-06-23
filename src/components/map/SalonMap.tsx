@@ -3,7 +3,14 @@
 import "leaflet/dist/leaflet.css";
 import L from "leaflet";
 import Link from "next/link";
-import { MapContainer, Marker, Popup, TileLayer } from "react-leaflet";
+import { useEffect } from "react";
+import {
+  MapContainer,
+  Marker,
+  Popup,
+  TileLayer,
+  useMap,
+} from "react-leaflet";
 import type { SalonSummary } from "@/lib/domain/types";
 import { formatDistance } from "@/lib/geo/distance";
 
@@ -17,7 +24,23 @@ function createMarkerIcon(index: number) {
   });
 }
 
-export function SalonMap({ salons }: { salons: SalonSummary[] }) {
+function createOriginIcon() {
+  return L.divIcon({
+    className: "",
+    html: '<div class="nurai-origin-marker"></div>',
+    iconSize: [22, 22],
+    iconAnchor: [11, 11],
+    popupAnchor: [0, -12],
+  });
+}
+
+export function SalonMap({
+  origin,
+  salons,
+}: {
+  origin?: { latitude: number; longitude: number; label: string } | null;
+  salons: SalonSummary[];
+}) {
   const tileUrl =
     process.env.NEXT_PUBLIC_MAP_TILE_URL ??
     "https://tile.openstreetmap.org/{z}/{x}/{y}.png";
@@ -36,6 +59,15 @@ export function SalonMap({ salons }: { salons: SalonSummary[] }) {
       className="h-[438px] w-full"
     >
       <TileLayer attribution={attribution} url={tileUrl} />
+      <MapAutoFit origin={origin} salons={salons} />
+      {origin ? (
+        <Marker
+          icon={createOriginIcon()}
+          position={[origin.latitude, origin.longitude]}
+        >
+          <Popup>{origin.label}</Popup>
+        </Marker>
+      ) : null}
       {salons.map((salon, index) => (
         <Marker
           icon={createMarkerIcon(index)}
@@ -65,4 +97,39 @@ export function SalonMap({ salons }: { salons: SalonSummary[] }) {
       ))}
     </MapContainer>
   );
+}
+
+function MapAutoFit({
+  origin,
+  salons,
+}: {
+  origin?: { latitude: number; longitude: number; label: string } | null;
+  salons: SalonSummary[];
+}) {
+  const map = useMap();
+
+  useEffect(() => {
+    const points: [number, number][] = salons.map((salon) => [
+      salon.latitude,
+      salon.longitude,
+    ]);
+    if (origin) points.push([origin.latitude, origin.longitude]);
+
+    if (points.length === 0) {
+      map.setView([42.8746, 74.6122], 12);
+      return;
+    }
+
+    if (points.length === 1) {
+      map.setView(points[0], 14);
+      return;
+    }
+
+    map.fitBounds(points, {
+      padding: [34, 34],
+      maxZoom: 14,
+    });
+  }, [map, origin, salons]);
+
+  return null;
 }

@@ -152,6 +152,17 @@ textarea:focus-visible {
     0 0 0 10px rgba(244, 176, 192, 0.18);
 }
 
+.nurai-origin-marker {
+  width: 22px;
+  height: 22px;
+  border: 3px solid #fff;
+  border-radius: 999px;
+  background: #1f8a70;
+  box-shadow:
+    0 12px 26px rgba(31, 138, 112, 0.26),
+    0 0 0 8px rgba(31, 138, 112, 0.16);
+}
+
 .leaflet-popup-content-wrapper {
   border-radius: 14px;
   box-shadow: var(--shadow-card);

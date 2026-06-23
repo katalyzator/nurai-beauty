@@ -19,7 +19,15 @@ const SalonMap = dynamic(
   },
 );
 
-export function SalonMapPanel({ salons }: { salons: SalonSummary[] }) {
+export function SalonMapPanel({
+  origin,
+  originLabel,
+  salons,
+}: {
+  origin?: { latitude: number; longitude: number; label: string } | null;
+  originLabel: string;
+  salons: SalonSummary[];
+}) {
   const nearest = salons[0];
   const visual = nearest ? getSalonVisual(nearest) : null;
 
@@ -27,9 +35,9 @@ export function SalonMapPanel({ salons }: { salons: SalonSummary[] }) {
     <section className="overflow-hidden rounded-[24px] border border-[var(--rose-line)] bg-white shadow-[var(--shadow-card)]">
       <div className="flex items-center justify-between gap-4 px-4 py-4">
         <div>
-          <h2 className="text-xl font-extrabold text-[var(--ink)]">Карта рядом</h2>
+          <h2 className="text-xl font-extrabold text-[var(--ink)]">Карта салонов</h2>
           <p className="mt-1 text-sm font-semibold text-[var(--muted)]">
-            Бишкек · {salons.length} салона в зоне
+            {originLabel} · {salons.length} на карте
           </p>
         </div>
         <span className="rounded-full bg-[var(--brand-fog)] px-3 py-1 text-xs font-extrabold text-[var(--brand-plum)]">
@@ -38,7 +46,7 @@ export function SalonMapPanel({ salons }: { salons: SalonSummary[] }) {
       </div>
 
       <div className="border-y border-[var(--line)]">
-        <SalonMap salons={salons} />
+        <SalonMap origin={origin} salons={salons} />
       </div>
 
       {nearest && visual ? (

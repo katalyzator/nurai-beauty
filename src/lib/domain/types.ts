@@ -12,6 +12,7 @@ export type SalonSummary = {
   latitude: number;
   longitude: number;
   distanceMeters: number | null;
+  serviceTags: string[];
 };
 
 export type Service = {
