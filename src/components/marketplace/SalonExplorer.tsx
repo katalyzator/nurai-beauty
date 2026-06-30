@@ -85,7 +85,7 @@ export function SalonExplorer({
 
   return (
     <>
-      <section className="py-6">
+      <section className="py-6" id="search">
         <div className="max-w-3xl pt-2">
           <p className="inline-flex items-center gap-2 rounded-full border border-[var(--rose-line)] bg-white px-3 py-1.5 text-xs font-extrabold text-[var(--rose-deep)] shadow-[var(--shadow-subtle)]">
             <span className="h-2 w-2 rounded-full bg-[var(--rose)]" />
@@ -160,63 +160,58 @@ export function SalonExplorer({
         </div>
       </section>
 
-      <section
-        id="salons"
-        className="grid gap-5 lg:grid-cols-[minmax(0,1fr)_500px]"
-      >
-        <div className="min-w-0">
-          <div className="mb-4 flex flex-col justify-between gap-3 border-b border-[var(--line)] pb-4 md:flex-row md:items-end">
-            <div>
-              <p className="flex items-center gap-2 text-xs font-extrabold uppercase text-[var(--rose-deep)]">
-                <MapPinned aria-hidden className="h-4 w-4" />
-                {formatSalonCount(visibleSalons.length)}
-              </p>
-              <h2 className="mt-1 text-2xl font-black tracking-normal sm:text-3xl">
-                Салоны с понятным временем
-              </h2>
-            </div>
-            <p className="max-w-md text-sm leading-6 text-[var(--muted)]">
-              {originLabel}. Фильтры меняют и список, и карту одновременно.
+      <SalonMapPanel
+        locationStatus={locationStatus}
+        onUseMyLocation={useMyLocation}
+        origin={origin ? { ...origin, label: "Вы здесь" } : null}
+        originLabel={originLabel}
+        salons={visibleSalons}
+      />
+
+      <section id="salons" className="mt-8">
+        <div className="mb-4 flex flex-col justify-between gap-3 border-b border-[var(--line)] pb-4 md:flex-row md:items-end">
+          <div>
+            <p className="flex items-center gap-2 text-xs font-extrabold uppercase text-[var(--rose-deep)]">
+              <MapPinned aria-hidden className="h-4 w-4" />
+              {formatSalonCount(visibleSalons.length)}
             </p>
+            <h2 className="mt-1 text-2xl font-black tracking-normal sm:text-3xl">
+              Каталог салонов
+            </h2>
           </div>
-
-          {errorMessage ? (
-            <div className="mb-4 rounded-[16px] border border-[var(--rose-line)] bg-[var(--blush-soft)] px-5 py-4 text-sm font-bold text-[var(--rose-deep)]">
-              {errorMessage}
-            </div>
-          ) : null}
-
-          <div className="grid gap-4 md:grid-cols-2" data-testid="salon-list">
-            {visibleSalons.length > 0 ? (
-              visibleSalons.map((salon, index) => (
-                <SalonCard
-                  key={salon.id}
-                  priority={index < 2}
-                  salon={salon}
-                />
-              ))
-            ) : (
-              <div className="rounded-[20px] border border-dashed border-[var(--rose-line)] bg-white px-6 py-12 text-center shadow-[var(--shadow-subtle)] md:col-span-2">
-                <p className="text-2xl font-black">
-                  {hasActiveFilters ? "Ничего не нашли" : "Салоны скоро появятся"}
-                </p>
-                <p className="mx-auto mt-3 max-w-md text-sm leading-6 text-[var(--muted)]">
-                  {hasActiveFilters
-                    ? "Попробуйте другой запрос или вернитесь к категории «Все»."
-                    : "Когда Supabase вернет активные салоны, список и карта обновятся автоматически."}
-                </p>
-              </div>
-            )}
-          </div>
+          <p className="max-w-md text-sm leading-6 text-[var(--muted)]">
+            {originLabel}. Фильтры меняют и список, и карту одновременно.
+          </p>
         </div>
 
-        <aside id="map" className="lg:sticky lg:top-5 lg:self-start">
-          <SalonMapPanel
-            origin={origin ? { ...origin, label: "Вы здесь" } : null}
-            originLabel={originLabel}
-            salons={visibleSalons}
-          />
-        </aside>
+        {errorMessage ? (
+          <div className="mb-4 rounded-[16px] border border-[var(--rose-line)] bg-[var(--blush-soft)] px-5 py-4 text-sm font-bold text-[var(--rose-deep)]">
+            {errorMessage}
+          </div>
+        ) : null}
+
+        <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3" data-testid="salon-list">
+          {visibleSalons.length > 0 ? (
+            visibleSalons.map((salon, index) => (
+              <SalonCard
+                key={salon.id}
+                priority={index < 3}
+                salon={salon}
+              />
+            ))
+          ) : (
+            <div className="rounded-[20px] border border-dashed border-[var(--rose-line)] bg-white px-6 py-12 text-center shadow-[var(--shadow-subtle)] md:col-span-2 xl:col-span-3">
+              <p className="text-2xl font-black">
+                {hasActiveFilters ? "Ничего не нашли" : "Салоны скоро появятся"}
+              </p>
+              <p className="mx-auto mt-3 max-w-md text-sm leading-6 text-[var(--muted)]">
+                {hasActiveFilters
+                  ? "Попробуйте другой запрос или вернитесь к категории «Все»."
+                  : "Когда Supabase вернет активные салоны, список и карта обновятся автоматически."}
+              </p>
+            </div>
+          )}
+        </div>
       </section>
     </>
   );

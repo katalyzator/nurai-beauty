@@ -147,8 +147,8 @@ textarea:focus-visible {
 
 .nurai-marker {
   display: grid;
-  width: 34px;
-  height: 34px;
+  width: 38px;
+  height: 38px;
   place-items: center;
   border: 2px solid #fff;
   border-radius: 999px;
@@ -159,6 +159,14 @@ textarea:focus-visible {
   color: #fff;
   font-size: 12px;
   font-weight: 800;
+  cursor: pointer;
+  transition:
+    transform 180ms ease,
+    box-shadow 180ms ease;
+}
+
+.nurai-marker:hover {
+  transform: scale(1.08);
 }
 
 .nurai-marker.is-nearest {
@@ -167,6 +175,43 @@ textarea:focus-visible {
   box-shadow:
     0 16px 38px rgba(104, 24, 41, 0.32),
     0 0 0 10px rgba(244, 176, 192, 0.18);
+}
+
+.nurai-marker.is-selected {
+  box-shadow:
+    0 18px 44px rgba(104, 24, 41, 0.36),
+    0 0 0 5px rgba(255, 255, 255, 0.92),
+    0 0 0 13px rgba(217, 93, 132, 0.22);
+  transform: scale(1.12);
+}
+
+.nurai-cluster-marker {
+  display: grid;
+  width: 46px;
+  height: 46px;
+  place-items: center;
+  border: 3px solid #fff;
+  border-radius: 999px;
+  background: radial-gradient(circle at 34% 28%, #d8efe2 0%, #97c8ab 44%, #5f9a78 100%);
+  box-shadow:
+    0 18px 44px rgba(69, 126, 96, 0.28),
+    0 0 0 9px rgba(127, 168, 148, 0.22),
+    0 0 0 18px rgba(127, 168, 148, 0.12);
+  color: #17382a;
+  cursor: zoom-in;
+  font-size: 14px;
+  font-weight: 900;
+  transition:
+    transform 180ms ease,
+    box-shadow 180ms ease;
+}
+
+.nurai-cluster-marker:hover {
+  transform: scale(1.08);
+  box-shadow:
+    0 22px 52px rgba(69, 126, 96, 0.34),
+    0 0 0 11px rgba(127, 168, 148, 0.26),
+    0 0 0 21px rgba(127, 168, 148, 0.14);
 }
 
 .nurai-origin-marker {

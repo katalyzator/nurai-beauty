@@ -23,18 +23,48 @@ test("marketplace home renders NurAI discovery", async ({ page }) => {
   await expect(page.getByText("Карта салонов")).toBeVisible();
 });
 
+test("header navigation matches the current marketplace sections", async ({
+  page,
+}) => {
+  await page.goto("/");
+
+  const nav = page.getByRole("navigation", { name: "Основная навигация" });
+
+  await expect(nav.getByRole("link", { name: "Поиск" })).toHaveAttribute(
+    "href",
+    "#search",
+  );
+  await expect(nav.getByRole("link", { name: "Карта" })).toHaveAttribute(
+    "href",
+    "#map",
+  );
+  await expect(nav.getByRole("link", { name: "Каталог" })).toHaveAttribute(
+    "href",
+    "#salons",
+  );
+  await expect(nav.getByRole("link", { name: "AI запись" })).toHaveAttribute(
+    "href",
+    "#assistant",
+  );
+  await expect(nav.getByRole("link", { name: "Для салонов" })).toHaveAttribute(
+    "href",
+    "/merchant",
+  );
+});
+
 test("marketplace filters update the salon list", async ({ page }) => {
   await page.goto("/");
   const list = page.getByTestId("salon-list");
 
-  await expect(list.getByRole("heading", { name: "Erkindik Nails" })).toBeVisible();
+  await expect(list.getByRole("heading", { name: "InStyle" })).toBeVisible();
   await page.getByRole("button", { name: "Брови" }).click();
-  await expect(list.getByRole("heading", { name: "Tumar Brow Bar" })).toBeVisible();
-  await expect(list.getByRole("heading", { name: "Erkindik Nails" })).not.toBeVisible();
+  await expect(list.getByRole("heading", { name: "Lash Book" })).toBeVisible();
+  await expect(list.getByRole("heading", { name: "InStyle" })).not.toBeVisible();
 
-  await page.getByPlaceholder("Маникюр, окрашивание, уход").fill("анкара");
-  await expect(list.getByRole("heading", { name: "Tumar Brow Bar" })).toBeVisible();
-  await expect(list.getByText("ул. Анкара 18, Бишкек")).toBeVisible();
+  await page.getByRole("button", { name: "Все" }).click();
+  await page.getByPlaceholder("Маникюр, окрашивание, уход").fill("киевская");
+  await expect(list.getByRole("heading", { name: "InStyle" })).toBeVisible();
+  await expect(list.getByText("Киевская улица, город Бишкек")).toBeVisible();
 });
 
 test("nearby button reorders salons from user geolocation", async ({
@@ -49,5 +79,22 @@ test("nearby button reorders salons from user geolocation", async ({
   await expect(page.getByText("Готово: ближайшие салоны подняты вверх.")).toBeVisible();
   await expect(
     page.getByTestId("salon-list").getByRole("heading").first(),
-  ).toHaveText("Tumar Brow Bar");
+  ).toHaveText("Adel");
+});
+
+test("map panel can use current geolocation", async ({ context, page }) => {
+  await context.grantPermissions(["geolocation"]);
+  await context.setGeolocation({ latitude: 42.8508, longitude: 74.668 });
+  await page.goto("/");
+
+  await page.locator("#map").scrollIntoViewIfNeeded();
+  await page
+    .locator("#map")
+    .getByRole("button", { name: /моя геопозиция/i })
+    .click();
+
+  await expect(
+    page.getByText("Готово: ближайшие салоны подняты вверх."),
+  ).toBeVisible();
+  await expect(page.locator("#map").getByText("От вашей геопозиции")).toBeVisible();
 });

@@ -46,9 +46,9 @@ export function createBookingDays(anchorDate = new Date(), count = 7) {
 
     return {
       isoDate: isoDateFormatter.format(date),
-      dayName: normalizeRuShortLabel(dayFormatter.format(date)),
+      dayName: normalizeRuWeekdayLabel(dayFormatter.format(date)),
       dayNumber: dayNumberFormatter.format(date),
-      monthName: normalizeRuShortLabel(monthFormatter.format(date)).slice(0, 3),
+      monthName: stripRuShortLabelDot(monthFormatter.format(date)).slice(0, 3),
     };
   });
 }
@@ -57,6 +57,11 @@ export function buildBishkekSlotIso(isoDate: string, time: string) {
   return new Date(`${isoDate}T${time}:00${BISHKEK_OFFSET}`).toISOString();
 }
 
-function normalizeRuShortLabel(label: string) {
+function normalizeRuWeekdayLabel(label: string) {
+  const cleanLabel = stripRuShortLabelDot(label);
+  return cleanLabel.charAt(0).toUpperCase() + cleanLabel.slice(1);
+}
+
+function stripRuShortLabelDot(label: string) {
   return label.replace(".", "");
 }
