@@ -35,10 +35,10 @@ export default async function SalonPage({
   return (
     <main className="beauty-shell min-h-screen px-3 py-4 sm:px-5 lg:px-8">
       <div className="mx-auto max-w-[1400px]">
-        <header className="flex min-h-16 items-center justify-between gap-4 border-b border-[var(--rose-line)]">
+        <header className="reveal-in sticky top-3 z-40 flex min-h-16 items-center justify-between gap-4 rounded-full glass glass-edge px-3 py-2 sm:px-5">
           <Link
             href="/"
-            className="inline-flex min-h-11 items-center gap-2 rounded-full border border-[var(--rose-line)] bg-white px-4 text-sm font-extrabold text-[var(--ink)] shadow-[var(--shadow-subtle)] hover:-translate-y-0.5"
+            className="btn-glass inline-flex min-h-11 items-center gap-2 rounded-full px-4 text-sm font-extrabold"
           >
             <ArrowLeft aria-hidden className="h-4 w-4" />
             Назад
@@ -54,7 +54,7 @@ export default async function SalonPage({
 
         <section className="mt-6 grid gap-6 lg:grid-cols-[minmax(0,1fr)_430px] lg:items-start">
           <div className="grid gap-6">
-            <div className="overflow-hidden rounded-[28px] border border-[var(--rose-line)] bg-white shadow-[var(--shadow-card)]">
+            <div className="reveal-in overflow-hidden rounded-[28px] glass glass-edge">
               <div className="relative min-h-[420px]">
                 <Image
                   src={visual.imageUrl}
@@ -100,7 +100,7 @@ export default async function SalonPage({
             </div>
 
             <ServicesPanel salon={salon} />
-            <StaffCatalog staff={salon.staff} />
+            <StaffCatalog salonSlug={salon.slug} />
           </div>
 
           <aside className="grid gap-4 lg:sticky lg:top-5 lg:self-start">
@@ -121,13 +121,13 @@ function ServicesPanel({
     : never;
 }) {
   return (
-    <div className="rounded-[24px] border border-[var(--rose-line)] bg-white/88 p-5 shadow-[var(--shadow-subtle)] backdrop-blur sm:p-6">
+    <div className="reveal-in rounded-[24px] glass glass-edge p-5 sm:p-6">
       <div className="flex flex-col gap-4 border-b border-[var(--line)] pb-5 md:flex-row md:items-end md:justify-between">
         <div>
           <p className="text-xs font-extrabold uppercase tracking-[0.14em] text-[var(--rose-deep)]">
             Меню услуг
           </p>
-          <h2 className="mt-2 text-3xl font-extrabold tracking-[-0.02em]">
+          <h2 className="mt-2 font-display text-4xl font-semibold tracking-tight">
             Что можно забронировать
           </h2>
         </div>
@@ -141,7 +141,7 @@ function ServicesPanel({
         {salon.services.map((service) => (
           <article
             key={service.id}
-            className="grid gap-4 rounded-[18px] border border-[var(--rose-line)] bg-white p-4 transition-[transform,border-color,box-shadow] duration-200 hover:-translate-y-0.5 hover:border-[var(--rose)] hover:shadow-[var(--shadow-card)] md:grid-cols-[minmax(0,1fr)_auto]"
+            className="lift grid gap-4 rounded-[18px] border border-[var(--glass-edge)] bg-white/55 p-4 backdrop-blur transition-[transform,box-shadow] duration-200 md:grid-cols-[minmax(0,1fr)_auto]"
           >
             <div>
               <p className="text-xs font-extrabold uppercase tracking-[0.14em] text-[var(--rose-deep)]">
@@ -179,7 +179,7 @@ function ContactsPanel({
     : never;
 }) {
   return (
-    <div className="rounded-[24px] border border-[var(--rose-line)] bg-white p-5 shadow-[var(--shadow-subtle)]">
+    <div className="rounded-[24px] glass p-5">
       <p className="text-xs font-extrabold uppercase tracking-[0.14em] text-[var(--rose-deep)]">
         Контакты
       </p>

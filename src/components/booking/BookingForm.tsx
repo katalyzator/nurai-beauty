@@ -19,6 +19,7 @@ import {
 } from "@/lib/domain/booking-calendar";
 import type { SalonDetail } from "@/lib/domain/types";
 import { getSalonVisual } from "@/lib/domain/salon-visuals";
+import { getDisplayMasters } from "@/lib/domain/salon-masters";
 
 export function BookingForm({
   salon,
@@ -49,13 +50,12 @@ export function BookingForm({
   const [selectedDate, setSelectedDate] = useState(days[0]?.isoDate ?? "");
   const [selectedTime, setSelectedTime] = useState("12:30");
   const visual = getSalonVisual(salon);
+  const masters = useMemo(() => getDisplayMasters(salon.slug), [salon.slug]);
   const selectedStaffId = internalStaffId;
   const selectedService = salon.services.find(
     (service) => service.id === selectedServiceId,
   );
-  const selectedStaff = salon.staff.find(
-    (member) => member.id === selectedStaffId,
-  );
+  const selectedStaff = masters.find((member) => member.id === selectedStaffId);
   const bookingSource = authenticated || isTelegramMiniApp ? "telegram" : source;
   const telegramName = user
     ? [user.firstName, user.lastName].filter(Boolean).join(" ")
@@ -70,10 +70,10 @@ export function BookingForm({
       salonId: salon.id,
       serviceId: selectedServiceId,
     });
-    if (selectedStaffId) params.set("staffId", selectedStaffId);
+    // Masters are demo placeholders; availability is checked for "any free master".
 
     return params.toString();
-  }, [salon.id, selectedDate, selectedServiceId, selectedStaffId]);
+  }, [salon.id, selectedDate, selectedServiceId]);
   const loadingAvailability = Boolean(
     availabilityKey && loadedAvailabilityKey !== availabilityKey,
   );
@@ -161,7 +161,7 @@ export function BookingForm({
       body: JSON.stringify({
         salonId: salon.id,
         serviceId: selectedServiceId,
-        staffId: selectedStaffId || null,
+        staffId: null,
         clientName: effectiveClientName,
         clientPhone,
         startAt: buildBishkekSlotIso(selectedDate, selectedTime),
@@ -190,9 +190,9 @@ export function BookingForm({
   return (
     <form
       onSubmit={submit}
-      className="rounded-[24px] border border-[var(--rose-line)] bg-white p-4 text-[var(--ink)] shadow-[var(--shadow-card)] sm:p-5"
+      className="reveal-in rounded-[24px] glass-strong glass-edge p-4 text-[var(--ink)] sm:p-5"
     >
-      <div className="rounded-[20px] bg-[linear-gradient(135deg,var(--brand-fog),var(--blush-soft))] p-4">
+      <div className="rounded-[20px] p-4" style={{ background: "var(--grad-soft)" }}>
         <p className="flex items-center gap-2 text-xs font-extrabold uppercase tracking-[0.14em] text-[var(--rose-deep)]">
           <CalendarClock aria-hidden className="h-4 w-4" />
           Быстрая запись
@@ -211,7 +211,7 @@ export function BookingForm({
             name="serviceId"
             value={selectedServiceId}
             onChange={(event) => setSelectedServiceId(event.target.value)}
-            className="min-h-12 w-full rounded-[14px] border border-[var(--rose-line)] bg-white px-4 text-sm font-bold text-[var(--ink)] outline-none"
+            className="min-h-12 w-full rounded-[14px] border border-[var(--glass-edge)] bg-white/70 px-4 text-sm font-bold text-[var(--ink)] outline-none backdrop-blur transition focus:border-[var(--rose)]"
           >
             {salon.services.map((service) => (
               <option key={service.id} value={service.id}>
@@ -226,12 +226,12 @@ export function BookingForm({
             name="staffId"
             value={selectedStaffId}
             onChange={(event) => updateStaffId(event.target.value)}
-            className="min-h-12 w-full rounded-[14px] border border-[var(--rose-line)] bg-white px-4 text-sm font-bold text-[var(--ink)] outline-none"
+            className="min-h-12 w-full rounded-[14px] border border-[var(--glass-edge)] bg-white/70 px-4 text-sm font-bold text-[var(--ink)] outline-none backdrop-blur transition focus:border-[var(--rose)]"
           >
             <option value="">Любой свободный мастер</option>
-            {salon.staff.map((member) => (
+            {masters.map((member) => (
               <option key={member.id} value={member.id}>
-                {member.fullName}
+                {member.fullName} · {member.roleTitle}
               </option>
             ))}
           </select>
@@ -317,7 +317,7 @@ export function BookingForm({
             required
             value={effectiveClientName}
             onChange={(event) => setClientName(event.target.value)}
-            className="min-h-12 w-full rounded-[14px] border border-[var(--rose-line)] bg-white px-4 text-sm font-bold text-[var(--ink)] outline-none placeholder:text-[var(--soft)]"
+            className="min-h-12 w-full rounded-[14px] border border-[var(--glass-edge)] bg-white/70 px-4 text-sm font-bold text-[var(--ink)] outline-none backdrop-blur transition focus:border-[var(--rose)] placeholder:text-[var(--soft)]"
           />
         </Field>
 
@@ -329,7 +329,7 @@ export function BookingForm({
             type="tel"
             value={clientPhone}
             onChange={(event) => setClientPhone(event.target.value)}
-            className="min-h-12 w-full rounded-[14px] border border-[var(--rose-line)] bg-white px-4 text-sm font-bold text-[var(--ink)] outline-none placeholder:text-[var(--soft)]"
+            className="min-h-12 w-full rounded-[14px] border border-[var(--glass-edge)] bg-white/70 px-4 text-sm font-bold text-[var(--ink)] outline-none backdrop-blur transition focus:border-[var(--rose)] placeholder:text-[var(--soft)]"
           />
         </Field>
       </div>

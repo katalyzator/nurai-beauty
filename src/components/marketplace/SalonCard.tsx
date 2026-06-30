@@ -21,41 +21,46 @@ export function SalonCard({
   return (
     <Link
       href={`/salons/${salon.slug}`}
-      className="group overflow-hidden rounded-[20px] border border-[var(--rose-line)] bg-white shadow-[var(--shadow-card)] transition-[transform,box-shadow,border-color] duration-300 hover:-translate-y-1 hover:border-[var(--petal)] hover:shadow-[0_28px_70px_rgba(104,24,41,0.14)]"
+      className="group glow-hover relative flex flex-col overflow-hidden rounded-[24px] glass glass-edge"
     >
-      <div className="relative h-36 overflow-hidden bg-[var(--blush-soft)]">
+      <div className="relative h-44 overflow-hidden">
         <Image
           src={visual.imageUrl}
           alt={visual.imageAlt}
           fill
           priority={priority}
           sizes="(min-width: 768px) 46vw, 100vw"
-          className="object-cover transition-transform duration-700 ease-out group-hover:scale-105"
+          className="object-cover transition-transform duration-[900ms] ease-out group-hover:scale-110"
         />
-      </div>
+        <div className="absolute inset-0 bg-gradient-to-t from-[rgba(43,18,30,0.62)] via-transparent to-transparent" />
 
-      <div className="p-4">
-        <div className="flex items-center justify-between gap-3 text-xs font-extrabold text-[var(--rose-deep)]">
-          <span>{formatDistance(salon.distanceMeters)}</span>
-          <span>
-            {salon.rating.toFixed(1)} · {formatReviewCount(salon.reviewCount)}
-          </span>
-        </div>
-
-        <h3 className="mt-2 text-lg font-extrabold leading-tight text-[var(--ink)]">
+        <span className="absolute left-3 top-3 inline-flex items-center gap-1 rounded-full bg-white/85 px-3 py-1 text-xs font-extrabold text-[var(--rose-deep)] shadow-sm backdrop-blur">
+          {formatDistance(salon.distanceMeters)}
+        </span>
+        <span className="absolute right-3 top-3 inline-flex items-center gap-1 rounded-full bg-white/85 px-2.5 py-1 text-xs font-extrabold text-[var(--cocoa)] shadow-sm backdrop-blur">
+          <Star aria-hidden className="h-3.5 w-3.5 fill-[var(--gold)] text-[var(--gold)]" />
+          {salon.rating.toFixed(1)}
+        </span>
+        <h3 className="absolute bottom-3 left-4 right-4 font-display text-2xl font-semibold leading-tight text-white drop-shadow">
           {salon.name}
         </h3>
-        <p className="mt-2 min-h-10 text-sm leading-5 text-[var(--muted)]">
+      </div>
+
+      <div className="flex flex-1 flex-col p-4">
+        <p className="text-xs font-extrabold text-[var(--rose-deep)]">
+          {formatReviewCount(salon.reviewCount)}
+        </p>
+        <p className="mt-1.5 min-h-10 text-sm leading-5 text-[var(--muted)]">
           {visual.specialty}. {visual.responseTime}.
         </p>
 
-        <div className="mt-4 grid gap-2 text-sm text-[var(--muted)]">
+        <div className="mt-3 grid gap-2 text-sm text-[var(--muted)]">
           <p className="flex items-center gap-2">
-            <MapPin aria-hidden className="h-4 w-4 text-[var(--rose)]" />
+            <MapPin aria-hidden className="h-4 w-4 shrink-0 text-[var(--rose)]" />
             <span className="truncate">{salon.address}</span>
           </p>
           <p className="flex items-center gap-2">
-            <Clock3 aria-hidden className="h-4 w-4 text-[var(--sage)]" />
+            <Clock3 aria-hidden className="h-4 w-4 shrink-0 text-[var(--sage)]" />
             <span>{visual.nextSlot}</span>
           </p>
         </div>
@@ -64,19 +69,21 @@ export function SalonCard({
           <span className="rounded-full bg-[var(--blush-soft)] px-3 py-1 text-xs font-bold text-[var(--rose-deep)]">
             {formatPriceTier(salon.priceTier)}
           </span>
-          <span className="inline-flex items-center gap-1 rounded-full bg-[var(--cream)] px-3 py-1 text-xs font-bold text-[var(--cocoa)]">
-            <Star aria-hidden className="h-3.5 w-3.5 fill-current" />
-            {salon.rating.toFixed(1)}
+          <span className="chip-mint inline-flex items-center gap-1 rounded-full px-3 py-1 text-xs font-bold">
+            {visual.tags?.[0] ?? "Запись онлайн"}
           </span>
         </div>
 
-        <div className="mt-4 flex items-center justify-between border-t border-[var(--line)] pt-4">
+        <div className="mt-auto flex items-center justify-between border-t border-[var(--line)] pt-4">
           <span className="text-sm font-extrabold text-[var(--ink)]">
             от {salon.priceTier * 300 + 300} сом
           </span>
-          <span className="inline-flex items-center gap-1 rounded-full bg-[var(--chocolate)] px-4 py-2 text-sm font-extrabold text-white">
+          <span className="btn-primary inline-flex items-center gap-1 rounded-full px-4 py-2 text-sm font-extrabold text-white">
             Записаться
-            <ArrowUpRight aria-hidden className="h-4 w-4" />
+            <ArrowUpRight
+              aria-hidden
+              className="h-4 w-4 transition-transform duration-300 group-hover:translate-x-0.5 group-hover:-translate-y-0.5"
+            />
           </span>
         </div>
       </div>

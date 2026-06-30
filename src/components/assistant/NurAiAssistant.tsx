@@ -164,14 +164,17 @@ export function NurAiAssistant({
 
   const panel = (
     <section
-      className={`border border-[var(--rose-line)] bg-white shadow-[var(--shadow-subtle)] ${
-        compact || floating ? "rounded-[20px] p-4" : "rounded-[24px] p-4 sm:p-5"
-      } ${floating ? "max-h-[calc(100vh-2rem)] overflow-y-auto" : ""}`}
+      className={`glass-strong glass-edge soft-scroll ${
+        compact || floating ? "rounded-[22px] p-4" : "rounded-[24px] p-4 sm:p-5"
+      } ${floating ? "max-h-[calc(100vh-2rem)] overflow-y-auto reveal-in" : ""}`}
       aria-label="nurAI Assistant"
     >
       <div className="flex items-start justify-between gap-4">
         <div className="flex items-center gap-3">
-          <span className="grid h-11 w-11 shrink-0 place-items-center rounded-full bg-[var(--brand-plum)] text-white">
+          <span
+            className="grid h-11 w-11 shrink-0 place-items-center rounded-[14px] text-white shadow-[var(--shadow-cta)]"
+            style={{ background: "var(--grad-cta)" }}
+          >
             <Bot aria-hidden className="h-5 w-5" />
           </span>
           <div>
@@ -184,8 +187,8 @@ export function NurAiAssistant({
           </div>
         </div>
         <div className="flex items-center gap-2">
-          <span className="inline-flex items-center gap-1 rounded-full bg-[var(--brand-fog)] px-3 py-1 text-xs font-extrabold text-[var(--brand-plum)]">
-            <ShieldCheck aria-hidden className="h-3.5 w-3.5" />
+          <span className="inline-flex items-center gap-1 rounded-full border border-[var(--glass-edge)] bg-white/55 px-3 py-1 text-xs font-extrabold text-[var(--brand-plum)] backdrop-blur">
+            <ShieldCheck aria-hidden className="h-3.5 w-3.5 text-[var(--gold-deep)]" />
             {authenticated ? user?.firstName ?? "Telegram" : "guarded"}
           </span>
           {floating ? (
@@ -193,7 +196,7 @@ export function NurAiAssistant({
               type="button"
               aria-label="Свернуть nurAI Assistant"
               onClick={() => setIsOpen(false)}
-              className="grid h-9 w-9 shrink-0 place-items-center rounded-full border border-[var(--rose-line)] bg-white text-[var(--brand-plum)] hover:bg-[var(--blush-soft)]"
+              className="btn-glass grid h-9 w-9 shrink-0 place-items-center rounded-full"
             >
               <Minus aria-hidden className="h-4 w-4" />
             </button>
@@ -207,8 +210,8 @@ export function NurAiAssistant({
             key={`${message.role}-${index}`}
             className={`max-w-[92%] rounded-[18px] px-4 py-3 text-sm font-semibold leading-6 ${
               message.role === "assistant"
-                ? "justify-self-start bg-[var(--porcelain)] text-[var(--ink)]"
-                : "justify-self-end bg-[var(--brand-plum)] text-white"
+                ? "justify-self-start border border-[var(--glass-edge)] bg-white/60 text-[var(--ink)] backdrop-blur"
+                : "btn-primary justify-self-end text-white"
             }`}
           >
             {message.role === "assistant" ? (
@@ -219,7 +222,7 @@ export function NurAiAssistant({
           </div>
         ))}
         {status === "thinking" ? (
-          <div className="inline-flex w-fit items-center gap-2 rounded-full bg-[var(--porcelain)] px-4 py-2 text-sm font-bold text-[var(--muted)]">
+          <div className="inline-flex w-fit items-center gap-2 rounded-full border border-[var(--glass-edge)] bg-white/55 px-4 py-2 text-sm font-bold text-[var(--muted)] backdrop-blur">
             <LoaderCircle aria-hidden className="h-4 w-4 animate-spin" />
             Думаю по доступным слотам...
           </div>
@@ -227,7 +230,10 @@ export function NurAiAssistant({
       </div>
 
       {draft ? (
-        <div className="mt-4 rounded-[18px] border border-[var(--petal-line)] bg-[var(--blush-soft)] p-4">
+        <div
+          className="mt-4 rounded-[18px] border border-[var(--petal-line)] p-4"
+          style={{ background: "var(--grad-soft)" }}
+        >
           <p className="flex items-center gap-2 text-xs font-extrabold uppercase text-[var(--rose-deep)]">
             <CalendarCheck2 aria-hidden className="h-4 w-4" />
             Черновик записи
@@ -245,7 +251,7 @@ export function NurAiAssistant({
             type="button"
             onClick={confirmDraft}
             disabled={status === "booking" || authLoading}
-            className="mt-3 inline-flex min-h-11 w-full items-center justify-center gap-2 rounded-full bg-[var(--brand-plum)] px-4 text-sm font-black text-white shadow-[var(--shadow-cta)] disabled:cursor-not-allowed disabled:opacity-70"
+            className="btn-primary mt-3 inline-flex min-h-11 w-full items-center justify-center gap-2 rounded-full px-4 text-sm font-black text-white disabled:cursor-not-allowed disabled:opacity-70"
           >
             {status === "booking" ? (
               <LoaderCircle aria-hidden className="h-4 w-4 animate-spin" />
@@ -263,7 +269,7 @@ export function NurAiAssistant({
             key={prompt}
             type="button"
             onClick={() => sendMessage(prompt)}
-            className="rounded-full border border-[var(--rose-line)] bg-white px-3 py-1.5 text-xs font-extrabold text-[var(--muted)] hover:border-[var(--rose)] hover:text-[var(--rose-deep)]"
+            className="rounded-full border border-[var(--glass-edge)] bg-white/55 px-3 py-1.5 text-xs font-extrabold text-[var(--muted)] backdrop-blur transition hover:bg-white/80 hover:text-[var(--rose-deep)]"
           >
             {prompt}
           </button>
@@ -281,13 +287,13 @@ export function NurAiAssistant({
           value={input}
           onChange={(event) => setInput(event.target.value)}
           placeholder="Например: маникюр завтра после 14:00"
-          className="min-h-11 min-w-0 rounded-full border border-[var(--rose-line)] bg-white px-4 text-sm font-semibold text-[var(--ink)] outline-none placeholder:text-[var(--soft)]"
+          className="min-h-11 min-w-0 rounded-full border border-[var(--glass-edge)] bg-white/70 px-4 text-sm font-semibold text-[var(--ink)] outline-none backdrop-blur transition focus:border-[var(--rose)] placeholder:text-[var(--soft)]"
         />
         <button
           type="submit"
           disabled={!input.trim() || status === "thinking"}
           aria-label="Отправить"
-          className="grid h-11 w-11 place-items-center rounded-full bg-[var(--brand-plum)] text-white shadow-[var(--shadow-cta)] disabled:cursor-not-allowed disabled:opacity-60"
+          className="btn-primary grid h-11 w-11 place-items-center rounded-full text-white disabled:cursor-not-allowed disabled:opacity-60"
         >
           {status === "thinking" ? (
             <LoaderCircle aria-hidden className="h-4 w-4 animate-spin" />
@@ -312,9 +318,9 @@ export function NurAiAssistant({
           type="button"
           aria-label="Открыть nurAI Assistant"
           onClick={() => setIsOpen(true)}
-          className="inline-flex min-h-14 items-center gap-3 rounded-full bg-[var(--brand-plum)] px-4 text-sm font-black text-white shadow-[var(--shadow-cta)] hover:-translate-y-0.5"
+          className="btn-primary inline-flex min-h-14 items-center gap-3 rounded-full px-4 pr-5 text-sm font-black text-white"
         >
-          <span className="grid h-9 w-9 place-items-center rounded-full bg-white/12">
+          <span className="grid h-9 w-9 place-items-center rounded-full bg-white/20">
             <MessageCircle aria-hidden className="h-5 w-5" />
           </span>
           <span className="hidden sm:inline">AI запись</span>

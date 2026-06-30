@@ -21,9 +21,9 @@ export function SalonSearchShell({
   errorMessage?: string;
 }) {
   return (
-    <main className="beauty-shell min-h-screen px-3 pb-8 pt-4 text-[var(--ink)] sm:px-5 lg:px-8">
+    <main className="beauty-shell min-h-screen px-3 pb-10 pt-3 text-[var(--ink)] sm:px-5 lg:px-8">
       <div className="mx-auto max-w-[1320px]">
-        <header className="flex min-h-16 items-center justify-between gap-4 border-b border-[var(--line)]">
+        <header className="reveal-in sticky top-3 z-40 mt-1 flex min-h-16 items-center justify-between gap-4 rounded-full glass glass-edge px-3 py-2 sm:px-5">
           <BrandLogo />
 
           <HeaderNav className="hidden md:flex" />
@@ -34,7 +34,10 @@ export function SalonSearchShell({
           />
         </header>
 
-        <HeaderNav className="mt-3 flex overflow-x-auto pb-1 md:hidden" compact />
+        <HeaderNav
+          className="mt-3 flex overflow-x-auto pb-1 md:hidden soft-scroll"
+          compact
+        />
 
         <SalonExplorer errorMessage={errorMessage} salons={salons} />
       </div>
@@ -58,10 +61,10 @@ function HeaderNav({
       className={`${className} items-center gap-1 text-sm font-bold text-[var(--muted)]`}
     >
       {navItems.map((item, index) => {
-        const className = `shrink-0 rounded-full px-4 py-2 ${
+        const className = `shrink-0 rounded-full px-4 py-2 transition ${
           index === 0
-            ? "bg-white text-[var(--ink)] shadow-[var(--shadow-subtle)]"
-            : "hover:bg-white hover:text-[var(--ink)]"
+            ? "glass-strong text-[var(--brand-plum)] shadow-[var(--shadow-subtle)]"
+            : "hover:bg-white/70 hover:text-[var(--ink)]"
         }`;
 
         if ("type" in item && item.type === "link") {

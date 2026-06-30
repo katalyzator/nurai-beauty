@@ -89,7 +89,7 @@ export function SalonMapPanel({
   return (
     <section
       id="map"
-      className="overflow-hidden rounded-[28px] border border-[var(--rose-line)] bg-white shadow-[var(--shadow-card)]"
+      className="reveal-in overflow-hidden rounded-[28px] glass glass-edge"
     >
       <div className="flex flex-col justify-between gap-4 border-b border-[var(--line)] px-4 py-4 sm:flex-row sm:items-center sm:px-5">
         <div className="min-w-0">
@@ -108,7 +108,7 @@ export function SalonMapPanel({
         <div className="flex flex-wrap items-center gap-2">
           <button
             aria-label="Моя геопозиция"
-            className="inline-flex min-h-9 items-center justify-center gap-2 rounded-full border border-[var(--petal-line)] bg-white px-3 text-xs font-extrabold text-[var(--brand-plum)] shadow-[var(--shadow-subtle)] hover:-translate-y-0.5 hover:border-[var(--rose)] disabled:cursor-wait disabled:opacity-70"
+            className="btn-glass inline-flex min-h-9 items-center justify-center gap-2 rounded-full px-3.5 text-xs font-extrabold disabled:cursor-wait disabled:opacity-70"
             disabled={locationStatus === "loading"}
             onClick={onUseMyLocation}
             type="button"
@@ -120,10 +120,10 @@ export function SalonMapPanel({
             )}
             {locationStatus === "loading" ? "Ищем..." : "Моя геопозиция"}
           </button>
-          <span className="rounded-full bg-[var(--brand-fog)] px-3 py-1 text-xs font-extrabold text-[var(--brand-plum)]">
+          <span className="rounded-full bg-white/60 px-3 py-1 text-xs font-extrabold text-[var(--brand-plum)] backdrop-blur">
             OpenStreetMap
           </span>
-          <span className="rounded-full bg-[#eef7f1] px-3 py-1 text-xs font-extrabold text-[#416c5a]">
+          <span className="chip-mint rounded-full px-3 py-1 text-xs font-extrabold">
             cluster zoom
           </span>
         </div>
@@ -140,10 +140,10 @@ export function SalonMapPanel({
           />
         </div>
 
-        <aside className="flex min-h-[520px] flex-col bg-[linear-gradient(180deg,#ffffff_0%,#fbfdff_48%,#fff8fb_100%)] p-4 lg:h-[640px] lg:p-5">
+        <aside className="flex min-h-[520px] flex-col bg-white/30 p-4 lg:h-[640px] lg:p-5">
           {selectedSalon && visual ? (
             <div>
-              <div className="rounded-[22px] border border-[var(--rose-line)] bg-white p-4 shadow-[var(--shadow-subtle)]">
+              <div className="rounded-[22px] glass-strong glass-edge p-4">
                 <div className="flex items-start justify-between gap-4">
                   <div className="min-w-0">
                     <p className="flex items-center gap-2 text-xs font-extrabold uppercase tracking-[0.14em] text-[var(--rose-deep)]">
@@ -205,7 +205,7 @@ export function SalonMapPanel({
 
                 <button
                   aria-label={`Открыть запись в ${selectedSalon.name}`}
-                  className="mt-5 inline-flex min-h-12 w-full items-center justify-center gap-2 rounded-full bg-[var(--brand-plum)] px-5 text-sm font-extrabold text-white shadow-[var(--shadow-cta)] disabled:cursor-wait disabled:opacity-80"
+                  className="btn-primary mt-5 inline-flex min-h-12 w-full items-center justify-center gap-2 rounded-full px-5 text-sm font-extrabold text-white disabled:cursor-wait disabled:opacity-80"
                   disabled={isOpeningSelectedSalon}
                   onClick={openSelectedSalon}
                   onFocus={() => selectedSalonHref && router.prefetch(selectedSalonHref)}
@@ -224,7 +224,7 @@ export function SalonMapPanel({
               </div>
             </div>
           ) : (
-            <div className="rounded-[22px] border border-dashed border-[var(--rose-line)] bg-white px-5 py-10 text-center">
+            <div className="rounded-[22px] glass border-dashed px-5 py-10 text-center">
               <p className="text-xl font-black text-[var(--ink)]">
                 Нет салонов на карте
               </p>
@@ -244,7 +244,7 @@ export function SalonMapPanel({
               </span>
             </div>
 
-            <div className="grid max-h-[312px] gap-2 overflow-y-auto pr-1 lg:max-h-[348px]">
+            <div className="soft-scroll grid max-h-[312px] gap-2 overflow-y-auto pr-1 lg:max-h-[348px]">
               {salons.map((salon, index) => {
                 const isSelected = selectedSalon?.id === salon.id;
                 const itemVisual = getSalonVisual(salon);
@@ -253,8 +253,8 @@ export function SalonMapPanel({
                   <button
                     className={`group grid grid-cols-[auto_1fr_auto] items-center gap-3 rounded-[16px] border px-3 py-3 text-left transition ${
                       isSelected
-                        ? "border-[var(--brand-plum)] bg-[var(--petal-soft)] shadow-[var(--shadow-subtle)]"
-                        : "border-[var(--line)] bg-white hover:border-[var(--rose)]"
+                        ? "border-transparent bg-white/80 shadow-[var(--shadow-subtle)] ring-1 ring-[var(--rose)]"
+                        : "border-[var(--glass-edge)] bg-white/45 hover:bg-white/70"
                     }`}
                     key={salon.id}
                     onClick={() => selectSalon(salon)}

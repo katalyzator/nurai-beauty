@@ -9,7 +9,7 @@ export function MerchantAuthGate({
   const href = buildTelegramBotHref(botUsername, "merchant");
 
   return (
-    <section className="mt-6 grid gap-5 rounded-[28px] border border-[var(--rose-line)] bg-white p-6 shadow-[var(--shadow-card)] lg:grid-cols-[1fr_360px] lg:items-center">
+    <section className="mt-6 grid gap-5 rounded-[28px] glass glass-edge reveal-in p-6 lg:grid-cols-[1fr_360px] lg:items-center">
       <div>
         <p className="flex items-center gap-2 text-xs font-extrabold uppercase tracking-[0.14em] text-[var(--rose-deep)]">
           <ShieldCheck aria-hidden className="h-4 w-4" />
@@ -23,8 +23,11 @@ export function MerchantAuthGate({
           внутри бота, чтобы создать салон, видеть заявки и управлять командой.
         </p>
       </div>
-      <div className="rounded-[22px] border border-[var(--rose-line)] bg-[var(--porcelain)] p-5">
-        <div className="grid h-12 w-12 place-items-center rounded-[16px] bg-[var(--brand-plum)] text-white">
+      <div className="rounded-[22px] glass-strong glass-edge p-5">
+        <div
+          className="grid h-12 w-12 place-items-center rounded-[16px] text-white"
+          style={{ background: "var(--grad-cta)" }}
+        >
           <Bot aria-hidden className="h-5 w-5" />
         </div>
         <p className="mt-4 text-lg font-black text-[var(--ink)]">
@@ -36,7 +39,7 @@ export function MerchantAuthGate({
         </p>
         {href ? (
           <a
-            className="mt-5 inline-flex min-h-11 items-center justify-center gap-2 rounded-full bg-[var(--brand-plum)] px-5 text-sm font-black text-white shadow-[var(--shadow-cta)]"
+            className="btn-primary mt-5 inline-flex min-h-11 items-center justify-center gap-2 rounded-full px-5 text-sm font-black text-white"
             href={href}
           >
             Открыть в Telegram

@@ -16,10 +16,10 @@ export default async function MerchantPage() {
   return (
     <main className="beauty-shell min-h-screen px-3 py-4 sm:px-5 lg:px-8">
       <div className="mx-auto max-w-[1400px]">
-        <header className="flex min-h-16 items-center justify-between gap-4 border-b border-[var(--rose-line)]">
+        <header className="sticky top-3 z-40 flex min-h-16 items-center justify-between gap-4 rounded-full glass glass-edge px-3 py-2">
           <Link
             href="/"
-            className="inline-flex min-h-11 items-center gap-2 rounded-full border border-[var(--rose-line)] bg-white px-4 text-sm font-extrabold text-[var(--ink)] shadow-[var(--shadow-subtle)] hover:-translate-y-0.5"
+            className="btn-glass inline-flex min-h-11 items-center gap-2 rounded-full px-4 text-sm font-extrabold hover:-translate-y-0.5"
           >
             <ArrowLeft aria-hidden className="h-4 w-4" />
             Маркетплейс
@@ -27,7 +27,7 @@ export default async function MerchantPage() {
           <div className="hidden sm:block">
             <BrandLogo compact />
           </div>
-          <span className="rounded-full bg-[var(--brand-fog)] px-4 py-2 text-sm font-extrabold text-[var(--brand-plum)]">
+          <span className="rounded-full glass-soft px-4 py-2 text-sm font-extrabold text-[var(--brand-plum)]">
             Кабинет салона
           </span>
         </header>
@@ -38,7 +38,7 @@ export default async function MerchantPage() {
           <MerchantOnboardingForm />
         ) : (
           <>
-            <section className="mt-6 rounded-[28px] border border-[var(--rose-line)] bg-white p-6 shadow-[var(--shadow-card)] sm:p-8">
+            <section className="mt-6 rounded-[28px] glass glass-edge reveal-in p-6 sm:p-8">
               <p className="flex items-center gap-2 text-xs font-extrabold uppercase tracking-[0.14em] text-[var(--rose-deep)]">
                 <Store aria-hidden className="h-4 w-4" />
                 Кабинет партнера
@@ -54,12 +54,12 @@ export default async function MerchantPage() {
                     Telegram-ролям салона.
                   </p>
                 </div>
-                <div className="rounded-[20px] border border-[var(--rose-line)] bg-[var(--porcelain)] p-4">
+                <div className="rounded-[20px] glass-soft p-4">
                   <p className="flex items-center gap-2 text-sm font-bold text-[var(--muted)]">
                     <CalendarDays aria-hidden className="h-4 w-4" />
                     В работе
                   </p>
-                  <p className="mt-2 font-display text-5xl font-bold leading-none">
+                  <p className="mt-2 font-display text-5xl font-bold leading-none text-gradient">
                     {dashboard.bookings.length}
                   </p>
                   <p className="mt-1 text-xs font-bold uppercase tracking-[0.14em] text-[var(--soft)]">

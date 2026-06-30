@@ -3,7 +3,9 @@ import { expect, test } from "@playwright/test";
 test("marketplace home renders NurAI discovery", async ({ page }) => {
   await page.goto("/");
   await expect(
-    page.getByRole("heading", { name: /найдите свободное окно в салон рядом/i }),
+    page.getByRole("heading", {
+      name: /nurai.*запись в салоны красоты бишкека/i,
+    }),
   ).toBeVisible();
   await expect(
     page.getByRole("button", { name: /открыть nurai assistant/i }),
@@ -46,10 +48,9 @@ test("header navigation matches the current marketplace sections", async ({
     "href",
     "#assistant",
   );
-  await expect(nav.getByRole("link", { name: "Для салонов" })).toHaveAttribute(
-    "href",
-    "/merchant",
-  );
+  await expect(
+    nav.getByRole("link", { name: /^(Для салонов|Салонам)$/ }),
+  ).toHaveAttribute("href", "/merchant");
 });
 
 test("marketplace filters update the salon list", async ({ page }) => {

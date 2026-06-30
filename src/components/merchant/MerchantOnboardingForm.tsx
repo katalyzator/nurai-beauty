@@ -59,7 +59,7 @@ export function MerchantOnboardingForm() {
   }
 
   return (
-    <section className="mt-6 rounded-[28px] border border-[var(--rose-line)] bg-white p-5 shadow-[var(--shadow-card)] sm:p-7">
+    <section className="mt-6 rounded-[28px] glass glass-edge reveal-in p-5 sm:p-7">
       <div className="grid gap-5 border-b border-[var(--line)] pb-5 lg:grid-cols-[1fr_340px] lg:items-end">
         <div>
           <p className="flex items-center gap-2 text-xs font-extrabold uppercase tracking-[0.14em] text-[var(--rose-deep)]">
@@ -74,7 +74,7 @@ export function MerchantOnboardingForm() {
             10:00-20:00. Потом все можно будет расширить в кабинете.
           </p>
         </div>
-        <div className="rounded-[20px] bg-[var(--porcelain)] p-4 text-sm font-bold leading-6 text-[var(--muted)]">
+        <div className="rounded-[20px] glass-soft p-4 text-sm font-bold leading-6 text-[var(--muted)]">
           После сохранения салон сразу появится в вашем кабинете. Клиентская
           запись будет назначать свободного мастера по услугам и занятым слотам.
         </div>
@@ -116,10 +116,10 @@ export function MerchantOnboardingForm() {
           </MerchantField>
         </div>
 
-        <div className="grid gap-4 rounded-[22px] border border-[var(--rose-line)] bg-[var(--porcelain)] p-4 lg:grid-cols-[1fr_160px_160px]">
+        <div className="grid gap-4 rounded-[22px] glass-soft p-4 lg:grid-cols-[1fr_160px_160px]">
           <MerchantField icon={<Scissors aria-hidden className="h-4 w-4" />} label="Первая услуга">
             <input
-              className="merchant-input bg-white"
+              className="merchant-input"
               name="serviceName"
               placeholder="Маникюр с гель-лаком"
               required
@@ -127,7 +127,7 @@ export function MerchantOnboardingForm() {
           </MerchantField>
           <MerchantField icon={<Scissors aria-hidden className="h-4 w-4" />} label="Минуты">
             <input
-              className="merchant-input bg-white"
+              className="merchant-input"
               defaultValue="90"
               min="10"
               name="serviceDurationMinutes"
@@ -137,7 +137,7 @@ export function MerchantOnboardingForm() {
           </MerchantField>
           <MerchantField icon={<Scissors aria-hidden className="h-4 w-4" />} label="Цена">
             <input
-              className="merchant-input bg-white"
+              className="merchant-input"
               defaultValue="1500"
               min="0"
               name="servicePriceKgs"
@@ -179,7 +179,7 @@ export function MerchantOnboardingForm() {
         </div>
 
         <button
-          className="inline-flex min-h-12 items-center justify-center gap-2 rounded-full bg-[var(--brand-plum)] px-6 text-sm font-black text-white shadow-[var(--shadow-cta)] disabled:cursor-not-allowed disabled:opacity-70 sm:w-fit"
+          className="btn-primary inline-flex min-h-12 items-center justify-center gap-2 rounded-full px-6 text-sm font-black text-white disabled:cursor-not-allowed disabled:opacity-70 sm:w-fit"
           disabled={status === "saving"}
           type="submit"
         >

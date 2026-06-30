@@ -18,7 +18,7 @@ function readLocalEnv() {
 }
 
 test("salon profile exposes booking form", async ({ page }) => {
-  await page.goto("/salons/ala-too-beauty-studio");
+  await page.goto("/salons/instyle-bishkek");
   await expect(page.getByRole("button", { name: /записаться/i })).toBeVisible();
   await expect(page.getByText("Каталог мастеров")).toBeVisible();
   await expect(page.getByRole("button", { name: /Любой свободный мастер/i })).toBeVisible();
@@ -28,9 +28,9 @@ test("salon profile creates a web booking", async ({ page }, testInfo) => {
   const phone = `+996700${Date.now().toString().slice(-6)}`;
   const freeTimeOffset = testInfo.project.name === "mobile" ? 1 : 0;
 
-  await page.goto("/salons/erkindik-nails");
-  await page.getByRole("button", { name: /Сезим/ }).click();
-  await expect(page.getByText("Мастер: Сезим")).toBeVisible();
+  await page.goto("/salons/instyle-bishkek");
+  await page.getByRole("button", { name: /Назгуль/ }).click();
+  await expect(page.getByText("Мастер: Назгуль")).toBeVisible();
   const chosenTime = await chooseFreeTime(page, freeTimeOffset);
   await page.getByLabel("Имя").fill("E2E Client");
   await page.getByLabel("Телефон").fill(phone);
@@ -38,7 +38,7 @@ test("salon profile creates a web booking", async ({ page }, testInfo) => {
 
   await expect(page.getByText("Заявка создана")).toBeVisible();
   await page.reload();
-  await page.getByRole("button", { name: /Сезим/ }).click();
+  await page.getByRole("button", { name: /Назгуль/ }).click();
   await expect(page.getByTestId(`booking-time-${chosenTime}`)).toBeDisabled();
   await expect(page.getByTestId(`booking-time-${chosenTime}`)).toContainText(
     "Занято",
