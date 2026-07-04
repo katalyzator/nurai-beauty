@@ -19,7 +19,8 @@ import {
 } from "@/lib/domain/booking-calendar";
 import type { SalonDetail } from "@/lib/domain/types";
 import { getSalonVisual } from "@/lib/domain/salon-visuals";
-import { getDisplayMasters } from "@/lib/domain/salon-masters";
+import { getSalonDisplayMasters } from "@/lib/domain/salon-masters";
+import { formatKgPhoneInput, normalizeKgPhone } from "@/lib/domain/phone";
 
 export function BookingForm({
   salon,
@@ -50,12 +51,13 @@ export function BookingForm({
   const [selectedDate, setSelectedDate] = useState(days[0]?.isoDate ?? "");
   const [selectedTime, setSelectedTime] = useState("12:30");
   const visual = getSalonVisual(salon);
-  const masters = useMemo(() => getDisplayMasters(salon.slug), [salon.slug]);
+  const masters = useMemo(() => getSalonDisplayMasters(salon), [salon]);
   const selectedStaffId = internalStaffId;
   const selectedService = salon.services.find(
     (service) => service.id === selectedServiceId,
   );
   const selectedStaff = masters.find((member) => member.id === selectedStaffId);
+  const selectedRealStaffId = selectedStaff?.isReal ? selectedStaff.id : null;
   const bookingSource = authenticated || isTelegramMiniApp ? "telegram" : source;
   const telegramName = user
     ? [user.firstName, user.lastName].filter(Boolean).join(" ")
@@ -70,10 +72,12 @@ export function BookingForm({
       salonId: salon.id,
       serviceId: selectedServiceId,
     });
-    // Masters are demo placeholders; availability is checked for "any free master".
+    if (selectedRealStaffId) {
+      params.set("staffId", selectedRealStaffId);
+    }
 
     return params.toString();
-  }, [salon.id, selectedDate, selectedServiceId]);
+  }, [salon.id, selectedDate, selectedRealStaffId, selectedServiceId]);
   const loadingAvailability = Boolean(
     availabilityKey && loadedAvailabilityKey !== availabilityKey,
   );
@@ -153,6 +157,13 @@ export function BookingForm({
       return;
     }
 
+    const normalizedPhone = normalizeKgPhone(clientPhone);
+    if (!normalizedPhone) {
+      setStatus("error");
+      setErrorMessage("Введите телефон в формате +996 700 000 000.");
+      return;
+    }
+
     setStatus("saving");
     setErrorMessage("");
     const response = await fetch("/api/bookings", {
@@ -161,16 +172,16 @@ export function BookingForm({
       body: JSON.stringify({
         salonId: salon.id,
         serviceId: selectedServiceId,
-        staffId: null,
+        staffId: selectedRealStaffId,
         clientName: effectiveClientName,
-        clientPhone,
+        clientPhone: normalizedPhone,
         startAt: buildBishkekSlotIso(selectedDate, selectedTime),
         source: bookingSource,
       }),
     });
 
     if (response.ok) {
-      if (selectedStaffId) {
+      if (selectedRealStaffId) {
         setUnavailableTimes((current) =>
           Array.from(new Set([...current, selectedTime])),
         );
@@ -327,8 +338,16 @@ export function BookingForm({
             placeholder="+996 700 000 000"
             required
             type="tel"
+            inputMode="tel"
+            autoComplete="tel"
             value={clientPhone}
-            onChange={(event) => setClientPhone(event.target.value)}
+            onBlur={(event) => {
+              const normalized = normalizeKgPhone(event.target.value);
+              if (normalized) setClientPhone(normalized);
+            }}
+            onChange={(event) =>
+              setClientPhone(formatKgPhoneInput(event.target.value))
+            }
             className="min-h-12 w-full rounded-[14px] border border-[var(--glass-edge)] bg-white/70 px-4 text-sm font-bold text-[var(--ink)] outline-none backdrop-blur transition focus:border-[var(--rose)] placeholder:text-[var(--soft)]"
           />
         </Field>

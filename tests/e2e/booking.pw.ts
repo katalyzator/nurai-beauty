@@ -34,6 +34,9 @@ test("salon profile creates a web booking", async ({ page }, testInfo) => {
   const chosenTime = await chooseFreeTime(page, freeTimeOffset);
   await page.getByLabel("Имя").fill("E2E Client");
   await page.getByLabel("Телефон").fill(phone);
+  await expect(page.getByLabel("Телефон")).toHaveValue(
+    phone.replace(/^(\+996)(\d{3})(\d{3})(\d{3})$/, "$1 $2 $3 $4"),
+  );
   await page.getByRole("button", { name: "Записаться" }).click();
 
   await expect(page.getByText("Заявка создана")).toBeVisible();

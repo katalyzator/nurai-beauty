@@ -1,7 +1,7 @@
-// Demo masters for the salon detail page. The production seed only ships a
-// generic "Любой свободный мастер" placeholder, so until merchants add real
-// staff we render 3-4 deterministic demo specialists per salon for a richer UI.
-// These are display-only: booking still goes through "any free master".
+import type { SalonDetail, StaffMember } from "@/lib/domain/types";
+
+// Demo masters for legacy/demo salon detail pages. Real merchant-created staff
+// always wins; these only appear while a salon has no staff rows yet.
 
 export type DisplayMaster = {
   id: string;
@@ -12,6 +12,8 @@ export type DisplayMaster = {
   rating: number;
   reviewCount: number;
   accent: string; // css gradient for the avatar
+  avatarUrl: string | null;
+  isReal: boolean;
 };
 
 const NAMES = [
@@ -95,6 +97,39 @@ export function getDisplayMasters(slug: string): DisplayMaster[] {
       rating: (46 + ((k * 13) % 4)) / 10, // 4.6 – 4.9
       reviewCount: 40 + ((k * 17) % 180),
       accent: ACCENTS[(k + i) % ACCENTS.length],
+      avatarUrl: null,
+      isReal: false,
     };
   });
+}
+
+function mapStaffMemberToDisplayMaster(
+  member: StaffMember,
+  index: number,
+): DisplayMaster {
+  return {
+    id: member.id,
+    fullName: member.fullName,
+    roleTitle: member.roleTitle,
+    bio:
+      member.bio ??
+      "Специалист салона. Можно выбрать этого мастера или записаться на ближайшее свободное окно.",
+    specialties:
+      member.specialties.length > 0 ? member.specialties : [member.roleTitle],
+    rating: member.rating,
+    reviewCount: member.reviewCount,
+    accent: ACCENTS[(hashString(member.id) + index) % ACCENTS.length],
+    avatarUrl: member.avatarUrl,
+    isReal: true,
+  };
+}
+
+export function getSalonDisplayMasters(
+  salon: Pick<SalonDetail, "slug" | "staff">,
+): DisplayMaster[] {
+  if (salon.staff.length > 0) {
+    return salon.staff.map(mapStaffMemberToDisplayMaster);
+  }
+
+  return getDisplayMasters(salon.slug);
 }

@@ -23,6 +23,7 @@ describe("mapNearbySalonRow", () => {
     expect(result.reviewCount).toBe(24);
     expect(result.distanceMeters).toBe(1234.5);
     expect(result.longitude).toBe(74.6057);
+    expect(result.address).toBe("проспект Чуй 132, Бишкек");
     expect(result.serviceTags).toEqual(["Волосы", "Женская стрижка"]);
   });
 });

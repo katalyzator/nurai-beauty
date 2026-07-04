@@ -65,7 +65,7 @@ test("marketplace filters update the salon list", async ({ page }) => {
   await page.getByRole("button", { name: "Все" }).click();
   await page.getByPlaceholder("Маникюр, окрашивание, уход").fill("киевская");
   await expect(list.getByRole("heading", { name: "InStyle" })).toBeVisible();
-  await expect(list.getByText("Киевская улица, город Бишкек")).toBeVisible();
+  await expect(list.getByText("улица Киевская, Бишкек")).toBeVisible();
 });
 
 test("nearby button reorders salons from user geolocation", async ({

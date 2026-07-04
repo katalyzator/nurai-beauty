@@ -2,11 +2,15 @@
 
 import { useEffect, useState } from "react";
 import { CheckCircle2, Clock3, Star, Users } from "lucide-react";
-import { getDisplayMasters } from "@/lib/domain/salon-masters";
+import { getSalonDisplayMasters } from "@/lib/domain/salon-masters";
+import type { SalonDetail } from "@/lib/domain/types";
 
-export function StaffCatalog({ salonSlug }: { salonSlug: string }) {
-  const masters = getDisplayMasters(salonSlug);
-  // null = "any free master"; otherwise a demo master id (display only).
+export function StaffCatalog({
+  salon,
+}: {
+  salon: Pick<SalonDetail, "slug" | "staff">;
+}) {
+  const masters = getSalonDisplayMasters(salon);
   const [activeId, setActiveId] = useState<string | null>(null);
 
   // Keep the catalog and the booking-form dropdown in sync.

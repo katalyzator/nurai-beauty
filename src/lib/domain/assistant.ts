@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { normalizeKgPhone } from "@/lib/domain/phone";
 
 export const DEFAULT_OPENROUTER_MODEL = "anthropic/claude-sonnet-4.6";
 
@@ -161,6 +162,16 @@ const domainTerms = [
   "отзыв",
   "telegram",
   "телеграм",
+  "book",
+  "booking",
+  "appointment",
+  "beauty",
+  "manicure",
+  "pedicure",
+  "nails",
+  "haircut",
+  "phone",
+  "name",
   "мини",
   "merchant",
   "кабинет",
@@ -234,7 +245,7 @@ export function buildAssistantSystemPrompt(context: AssistantContext) {
     "Keep answers short, warm, and practical. Write in Russian unless the user clearly uses another language.",
     "Return only JSON with fields: intent, reply, bookingDraft, suggestions.",
     "bookingDraft must be null until the user has provided salon/service/time/date/clientName/clientPhone or clearly accepts a suggested option.",
-    "If bookingDraft is present, use this shape: { salonId, serviceId, staffId, clientName, clientPhone, date, time, notes }. Use staffId null when the user asks for any available master.",
+    "If bookingDraft is present, use this shape: { salonId, serviceId, staffId, clientName, clientPhone, date, time, notes }. Format clientPhone as +996 XXX XXX XXX. Use staffId null when the user asks for any available master.",
     `Current date: ${context.currentDate}. Timezone: ${context.timezone}.`,
     `Telegram authenticated current user: ${context.isTelegramAuthenticated ? "yes" : "no"}.`,
     "Public catalog:",
@@ -481,13 +492,9 @@ export function buildLocalAssistantResponse({
     };
   }
 
-  const time = message.match(/\b([01]\d|2[0-3]):([0-5]\d)\b/)?.[0] ?? null;
-  const phone =
-    message.match(/\+996[\d\s().-]{7,18}/)?.[0].trim() ??
-    message.match(/\b0\d{9}\b/)?.[0] ??
-    null;
-  const nameMatch = message.match(/(?:имя|меня зовут)\s+([A-Za-zА-Яа-яЁё-]{2,40})/i);
-  const clientName = nameMatch?.[1] ?? "";
+  const time = extractBookingTime(message);
+  const phone = extractBookingPhone(message);
+  const clientName = extractClientName(message) ?? "";
 
   const bookingDraft =
     time && phone && clientName
@@ -670,19 +677,40 @@ function extractBookingTime(message: string) {
 }
 
 function extractBookingPhone(message: string) {
-  return (
-    message.match(/\+996[\d\s().-]{7,18}/)?.[0].trim() ??
-    message.match(/\b0\d{9}\b/)?.[0] ??
-    null
-  );
+  const candidates = [
+    ...Array.from(
+      message.matchAll(
+        /(?:телефон|номер|phone|mobile|whatsapp|ватсап|wa)\s*[:\-]?\s*([+\d][+\d\s().-]{6,24})/gi,
+      ),
+      (match) => match[1],
+    ),
+    message.match(/\+996[\d\s().-]{7,20}/)?.[0],
+    message.match(/\b996[\d\s().-]{7,20}/)?.[0],
+    message.match(/\b0\d[\d\s().-]{8,16}\b/)?.[0],
+  ].filter(Boolean) as string[];
+
+  for (const candidate of candidates) {
+    const normalized = normalizeKgPhone(candidate);
+    if (normalized) return normalized;
+  }
+
+  return null;
 }
 
 function extractClientName(message: string) {
-  const match = message.match(
-    /(?:имя|меня зовут)\s+([A-Za-zА-Яа-яЁё-]{2,40})/i,
-  );
+  const patterns = [
+    /(?:имя|меня зовут|зовут)\s*[:\-]?\s*([A-Za-zА-Яа-яЁё][A-Za-zА-Яа-яЁё' -]{1,40})(?=[,.;]|$)/i,
+    /(?:my name is|name is|name|i am|i'm)\s*[:\-]?\s*([A-Za-z][A-Za-z' -]{1,40})(?=[,.;]|$)/i,
+    /(?:аты|менин атым)\s*[:\-]?\s*([A-Za-zА-Яа-яЁё][A-Za-zА-Яа-яЁё' -]{1,40})(?=[,.;]|$)/i,
+  ];
 
-  return match?.[1] ?? null;
+  for (const pattern of patterns) {
+    const match = message.match(pattern);
+    const name = match?.[1]?.trim();
+    if (name) return name;
+  }
+
+  return null;
 }
 
 function extractBookingDate(message: string, currentDate: string) {
@@ -704,9 +732,15 @@ function extractBookingDate(message: string, currentDate: string) {
     ].join("-");
   }
 
-  if (normalized.includes("послезавтра")) return addDaysToDate(currentDate, 2);
-  if (normalized.includes("завтра")) return addDaysToDate(currentDate, 1);
-  if (normalized.includes("сегодня")) return currentDate;
+  if (normalized.includes("послезавтра") || normalized.includes("day after tomorrow")) {
+    return addDaysToDate(currentDate, 2);
+  }
+  if (normalized.includes("завтра") || normalized.includes("tomorrow")) {
+    return addDaysToDate(currentDate, 1);
+  }
+  if (normalized.includes("сегодня") || normalized.includes("today")) {
+    return currentDate;
+  }
 
   return null;
 }
@@ -752,18 +786,40 @@ function scoreServiceMatch(
   service: AssistantCatalogService,
   normalizedMessage: string,
 ) {
-  const serviceName = normalizeText(service.name);
-  const category = normalizeText(service.category);
+  const terms = getServiceSearchTerms(service);
+  const serviceName = terms[0];
+  const category = terms[1];
   if (normalizedMessage.includes(serviceName)) return 24;
   if (normalizedMessage.includes(category)) return 12;
 
-  return [service.name, service.category]
-    .flatMap((value) => normalizeText(value).split(/\s+/))
+  return terms
+    .flatMap((value) => value.split(/\s+/))
     .filter((word) => word.length >= 4)
     .reduce(
       (score, word) => score + (normalizedMessage.includes(word) ? 4 : 0),
       0,
     );
+}
+
+function getServiceSearchTerms(service: AssistantCatalogService) {
+  const baseTerms = [service.name, service.category].map(normalizeText);
+  const joined = baseTerms.join(" ");
+  const aliases: string[] = [];
+
+  if (/(маникюр|педикюр|ногти|гель)/.test(joined)) {
+    aliases.push("manicure", "pedicure", "nail", "nails");
+  }
+  if (/(волос|стриж|окраш|уклад)/.test(joined)) {
+    aliases.push("hair", "haircut", "coloring", "styling");
+  }
+  if (/(бров|ресниц|lash|brow)/.test(joined)) {
+    aliases.push("brow", "brows", "lash", "lashes");
+  }
+  if (/(косметолог|уход|чистка|пилинг)/.test(joined)) {
+    aliases.push("facial", "skincare", "cosmetology");
+  }
+
+  return [...baseTerms, ...aliases.map(normalizeText)];
 }
 
 function selectStaff(salon: AssistantCatalogSalon, message: string) {
@@ -856,7 +912,8 @@ function validateBookingDraft(
   if (!parsedDraft.success) return null;
 
   const draft = parsedDraft.data;
-  if (!/^[+\d\s().-]{7,32}$/.test(draft.clientPhone)) return null;
+  const clientPhone = normalizeKgPhone(draft.clientPhone);
+  if (!clientPhone) return null;
 
   const salon = context.salons.find((item) => item.id === draft.salonId);
   if (!salon) return null;
@@ -878,7 +935,7 @@ function validateBookingDraft(
     staffId: staff?.id ?? null,
     staffName: staff?.fullName ?? null,
     clientName: draft.clientName,
-    clientPhone: draft.clientPhone,
+    clientPhone,
     date: draft.date,
     time: draft.time,
     notes: draft.notes || undefined,

@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 import {
+  bookingInputSchema,
   calculateEndAt,
   findFirstAvailableStaffId,
   getUnavailableBookingTimes,
@@ -7,6 +8,20 @@ import {
 } from "@/lib/domain/bookings";
 
 describe("calculateEndAt", () => {
+  it("normalizes client phone in booking input", () => {
+    const parsed = bookingInputSchema.parse({
+      salonId: "11111111-1111-4111-8111-111111111111",
+      serviceId: "22222222-2222-4222-8222-222222222222",
+      staffId: null,
+      clientName: "Айбек",
+      clientPhone: "0700000000",
+      startAt: "2026-06-23T06:00:00.000Z",
+      source: "web",
+    });
+
+    expect(parsed.clientPhone).toBe("+996 700 000 000");
+  });
+
   it("adds service duration to booking start", () => {
     expect(calculateEndAt("2026-06-23T10:00:00.000Z", 90)).toBe(
       "2026-06-23T11:30:00.000Z",

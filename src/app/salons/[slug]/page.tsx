@@ -100,7 +100,7 @@ export default async function SalonPage({
             </div>
 
             <ServicesPanel salon={salon} />
-            <StaffCatalog salonSlug={salon.slug} />
+            <StaffCatalog salon={salon} />
           </div>
 
           <aside className="grid gap-4 lg:sticky lg:top-5 lg:self-start">

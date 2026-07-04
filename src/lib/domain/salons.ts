@@ -1,4 +1,5 @@
 import type { SalonDetail, SalonSummary } from "@/lib/domain/types";
+import { formatBishkekAddress } from "@/lib/domain/address";
 import { createServerClient } from "@/lib/supabase/server";
 
 type NearbySalonRow = {
@@ -63,7 +64,7 @@ export function mapNearbySalonRow(row: NearbySalonRow): SalonSummary {
     slug: row.slug,
     city: row.city,
     district: row.district,
-    address: row.address,
+    address: formatBishkekAddress(row.address),
     rating: Number(row.rating),
     reviewCount: row.review_count,
     priceTier: row.price_tier,
@@ -89,7 +90,7 @@ export function mapSalonDetailRow(row: SalonDetailRow): SalonDetail {
     slug: row.slug,
     city: row.city,
     district: row.district,
-    address: row.address,
+    address: formatBishkekAddress(row.address),
     phone: row.phone,
     instagramUrl: row.instagram_url,
     description: row.description,

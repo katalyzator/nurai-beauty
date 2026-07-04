@@ -4,14 +4,28 @@ import {
   defaultBookingTimes,
 } from "@/lib/domain/booking-calendar";
 import type { Booking, BookingInput } from "@/lib/domain/types";
+import { normalizeKgPhone } from "@/lib/domain/phone";
 import { createAdminClient } from "@/lib/supabase/admin";
+
+const kgPhoneSchema = z.string().transform((value, context) => {
+  const normalized = normalizeKgPhone(value);
+  if (!normalized) {
+    context.addIssue({
+      code: "custom",
+      message: "Телефон должен быть в формате +996 XXX XXX XXX",
+    });
+    return z.NEVER;
+  }
+
+  return normalized;
+});
 
 export const bookingInputSchema = z.object({
   salonId: z.string().uuid(),
   serviceId: z.string().uuid(),
   staffId: z.string().uuid().nullable(),
   clientName: z.string().min(2).max(120),
-  clientPhone: z.string().min(7).max(32),
+  clientPhone: kgPhoneSchema,
   telegramUserId: z.number().int().positive().nullable().optional(),
   startAt: z.iso.datetime(),
   source: z.enum(["web", "telegram", "merchant_manual"]),

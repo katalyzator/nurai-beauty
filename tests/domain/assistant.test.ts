@@ -153,6 +153,36 @@ describe("nurAI assistant guardrails", () => {
     expect(output?.reply).toContain("черновик");
   });
 
+  it("builds deterministic booking drafts from English name and phone labels", () => {
+    const output = buildDeterministicBookingResponse({
+      context,
+      message:
+        "Book manicure at Erkindik Nails today 11:00 with Sezim. Name Aibek, phone 996700000000",
+    });
+
+    expect(output?.bookingDraft).toMatchObject({
+      clientName: "Aibek",
+      clientPhone: "+996 700 000 000",
+      date: "2026-06-23",
+      time: "11:00",
+    });
+  });
+
+  it("builds deterministic booking drafts from Russian number label without country prefix", () => {
+    const output = buildDeterministicBookingResponse({
+      context,
+      message:
+        "Запиши на маникюр сегодня в 14:00. Имя Айбек, номер 0700000000",
+    });
+
+    expect(output?.bookingDraft).toMatchObject({
+      clientName: "Айбек",
+      clientPhone: "+996 700 000 000",
+      date: "2026-06-23",
+      time: "14:00",
+    });
+  });
+
   it("keeps deterministic booking drafts assignable to any available master", () => {
     const output = buildDeterministicBookingResponse({
       context,
@@ -241,6 +271,7 @@ describe("nurAI assistant guardrails", () => {
       salonName: "Erkindik Nails",
       serviceName: "Маникюр с гель-лаком",
       staffName: "Сезим",
+      clientPhone: "+996 700 000 000",
       notes: undefined,
     });
   });
